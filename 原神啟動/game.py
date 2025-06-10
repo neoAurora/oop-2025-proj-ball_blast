@@ -27,6 +27,15 @@ class Game:
         self.bullet_in_wave = 0       # 当前波已发射子弹数
         self.bullet_cooldown = 0      # 子弹发射冷却
 
+        # 加載背景圖
+        self.background = pygame.transform.scale(
+            pygame.image.load("background.png").convert(), 
+            (self.width, self.height)
+        )
+        
+        # 文字顏色
+        self.text_color = (255, 255, 255)
+
     def spawn_ball(self):
         x = random.randint(50, self.width - 50)
         radius = random.randint(20, 30)
@@ -60,7 +69,7 @@ class Game:
                 self.running = False
 
     def draw(self):
-        self.screen.fill((255, 255, 255))
+        self.screen.blit(self.background, (0, 0))
         self.cannon.draw(self.screen)
         for bullet in self.bullets:
             bullet.draw(self.screen)
