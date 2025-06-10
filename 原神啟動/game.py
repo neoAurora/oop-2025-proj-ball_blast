@@ -107,10 +107,15 @@ class Game:
                     ball.hp -= 1
                     self.bullets.remove(bullet)
                     
+                    # 先檢查是否需要分裂（根據半徑）
+                    if ball.radius > 15:  # 可分裂條件
+                        new_balls = ball.split()
+                        self.balls.extend(new_balls)
+                        self.score += 10
+                
+                    # 再移除HP<=0的球（無論是否分裂過）
                     if ball.hp <= 0:
                         self.balls.remove(ball)
-                        self.balls.extend(b for b in ball.split() if b.hp > 0)
-                        self.score += 10
                     break
 
     def check_game_over(self):
