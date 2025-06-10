@@ -74,13 +74,24 @@ class Ball:
         win.blit(text, (self.x - text.get_width()//2, self.y - text.get_height()//2))
 
     def is_hit(self, bullet):
-        distance = math.hypot(self.x - bullet.x, self.y - bullet.y)
-        if distance > self.radius + bullet.radius:
+        """檢測與子彈的碰撞（使用子彈的 image & mask 做 pixel-level 碰撞）"""
+        # 1. 先用簡易的矩形包圍盒（AABB）做一次快篩 (optional)
+        ball_rect = self.current_image.get_rect(center=(int(self.x), int(self.y)))
+        bullet_rect = bullet.image.get_rect(center=(int(bullet.x), int(bullet.y)))
+        
+        if not ball_rect.colliderect(bullet_rect):
+            # 如果它們的包圍盒都沒碰到，就不用繼續做 pixel-level
             return False
-        bullet_mask = pygame.mask.Mask((bullet.radius*2, bullet.radius*2), True)
-        offset = (int(bullet.x - self.x + self.radius), 
-                 int(bullet.y - self.y + self.radius))
-        return self.mask.overlap(bullet_mask, offset)
+
+        # 2. 計算兩個遮罩的 offset
+        offset_x = bullet_rect.left - ball_rect.left
+        offset_y = bullet_rect.top  - ball_rect.top
+        offset = (offset_x, offset_y)
+
+        # 3. 呼叫 mask.overlap() 來檢查是否有真正的像素重疊
+        #    如果有重疊就回傳 (non-None)；否則回傳 None
+        overlap_point = self.mask.overlap(bullet.mask, offset)
+        return overlap_point is not None
 
     def split(self):
         """修改後的分裂方法"""
