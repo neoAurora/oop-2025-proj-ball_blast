@@ -41,15 +41,15 @@ class Game:
         self.bullets_per_wave = 5  # 每波5發
 
     def spawn_ball(self):
-        """生成新球體"""
         ball = Ball(
             x=random.randint(50, self.width-50),
             y=0,
             radius=random.randint(20, 30),
-            hp=random.randint(20, 30)
+            hp=random.randint(5, 10),
+            max_splits=4  # 初始球有4次分裂機會
         )
-        ball.dx = random.uniform(-4, 4)  # 水平速度
-        ball.dy = random.uniform(1, 2.5) # 垂直速度
+        ball.dx = random.uniform(-4, 4)
+        ball.dy = random.uniform(1, 2.5)
         self.balls.append(ball)
 
     def handle_events(self):
@@ -107,13 +107,13 @@ class Game:
                     ball.hp -= 1
                     self.bullets.remove(bullet)
                     
-                    # 先檢查是否需要分裂（根據半徑）
-                    if ball.radius > 15:  # 可分裂條件
+                    # 只有當球體夠大且"消失前"HP足夠才分裂
+                    if ball.radius > 15 and ball.hp >= 1:  # 檢查原始HP
                         new_balls = ball.split()
                         self.balls.extend(new_balls)
                         self.score += 10
-                
-                    # 再移除HP<=0的球（無論是否分裂過）
+
+                    # 檢查是否需要分裂（根據半徑）
                     if ball.hp <= 0:
                         self.balls.remove(ball)
                     break
