@@ -11,14 +11,18 @@ class Ball:
         self.hp = hp
         self.dx = random.uniform(-3, 3)
         self.dy = random.uniform(1, 3)
-        self.gravity = 0.2
+        self.gravity = 0.1
         self.font = pygame.font.SysFont("Arial", 24)  # 建立自己的字型物件
 
     def move(self, screen_height):
-        self.y += self.gravity
+        self.dy += self.gravity
 
         self.x += self.dx
         self.y += self.dy
+
+        if self.y + self.radius >= screen_height - 100:
+            self.y = screen_height - self.radius - 100  # 防止卡進地面
+            self.dy = -10
 
     def draw(self, win):
         if self.hp > 0:  # 只有HP大于0才绘制
