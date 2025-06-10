@@ -35,16 +35,16 @@ class Ball:
 
     @classmethod
     def _load_images(cls):
-        if cls._ball_images is None:
-            cls._ball_images = []
-            for i in range(15):
-                try:
-                    img = pygame.image.load(f"ball{i}.png").convert_alpha()
-                    cls._ball_images.append(img)
-                except:
-                    surf = pygame.Surface((100,100), pygame.SRCALPHA)
-                    pygame.draw.circle(surf, (random.randint(50,255),0,0), (50,50), 50)
-                    cls._ball_images.append(surf)
+        """類別方法：預載所有球體圖片（只執行一次）"""
+        if cls._ball_images is not None:
+            return
+            
+        cls._ball_images = []
+        for i in range(15):  # ball0.png ~ ball14.png
+            # 嘗試載入圖片（支援相對路徑）
+            img_path = os.path.join("image", f"ball{i}.png")
+            img = pygame.image.load(img_path).convert_alpha()
+            cls._ball_images.append(img)
 
     def move(self, screen_width, screen_height):
         self.dy += self.gravity
