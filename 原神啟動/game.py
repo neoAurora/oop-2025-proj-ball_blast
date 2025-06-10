@@ -40,7 +40,10 @@ class Game:
                     self.bullets.remove(bullet)
                     if ball.hp <= 0:
                         self.balls.remove(ball)
-                        self.balls.extend(ball.split())  # 分裂
+                        new_balls = ball.split()
+                        for new_ball in new_balls:
+                            if new_ball.hp > 0:  # 确保新分裂的球HP大于0
+                                self.balls.append(new_ball)
                         self.score += 10
                     break
 
@@ -55,7 +58,8 @@ class Game:
         for bullet in self.bullets:
             bullet.draw(self.screen)
         for ball in self.balls:
-            ball.draw(self.screen)
+            if ball.hp > 0:  # 只绘制HP大于0的球
+                ball.draw(self.screen)
         score_text = self.font.render(f"Score: {self.score}", True, (0, 0, 0))
         self.screen.blit(score_text, (10, 10))
         pygame.display.update()
