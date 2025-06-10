@@ -44,7 +44,7 @@ class Game:
         ball = Ball(
             x=random.randint(50, self.width-50),
             y=0,
-            radius=random.randint(20, 30),
+            radius=random.randint(60, 80),
             hp=random.randint(5, 10),
             max_splits=4  # 初始球有4次分裂機會
         )
