@@ -20,9 +20,12 @@ class Game:
         self.clock = pygame.time.Clock()
         self.font = pygame.font.SysFont("Arial", 24)
 
-        self.max_bullets = 5      # 最大子弹数量
-        self.bullet_cooldown = 10 # 子弹发射冷却时间（帧数）
-        self.cooldown_timer = 0   # 冷却计时器
+        self.wave_interval = 30       # 0.5秒（30帧）一波
+        self.bullet_delay = 6         # 0.1秒（6帧）一发
+        self.bullets_per_wave = 5     # 每波5发
+        self.wave_timer = 0           # 波次计时器
+        self.bullet_in_wave = 0       # 当前波已发射子弹数
+        self.bullet_cooldown = 0      # 子弹发射冷却
 
     def spawn_ball(self):
         x = random.randint(50, self.width - 50)
@@ -72,6 +75,19 @@ class Game:
         while self.running:
             self.clock.tick(60)
         
+            # 自动发射子弹（波次+间隔逻辑）
+            self.wave_timer += 1
+            if self.wave_timer >= self.wave_interval:
+                self.wave_timer = 0
+                self.bullet_in_wave = 0
+
+            if self.bullet_in_wave < self.bullets_per_wave:
+                self.bullet_cooldown += 1
+                if self.bullet_cooldown >= self.bullet_delay:
+                    self.bullet_cooldown = 0
+                    self.bullets.append(Bullet(self.cannon.x, self.cannon.y))
+                    self.bullet_in_wave += 1    
+
             # 处理事件
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -84,12 +100,7 @@ class Game:
             if keys[pygame.K_RIGHT]:
                 self.cannon.move("RIGHT", self.width)
 
-            # 子弹发射逻辑（按住空格键可以连发）
-            if keys[pygame.K_SPACE]:
-                if len(self.bullets) < self.max_bullets and self.cooldown_timer <= 0:
-                    self.bullets.append(Bullet(self.cannon.x, self.cannon.y))
-                    self.cooldown_timer = self.bullet_cooldown  # 重置冷却时间
-            self.cooldown_timer -= 1  # 冷却计时器递减
+            
 
             # 生成新球
             self.spawn_timer += 1
