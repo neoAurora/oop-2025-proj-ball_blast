@@ -1,6 +1,7 @@
 # ball.py
 import pygame
 import math
+import random
 
 class Ball:
     def __init__(self, x, y, radius, hp):
@@ -8,10 +9,15 @@ class Ball:
         self.y = y
         self.radius = radius
         self.hp = hp
-        self.dy = 2
+        self.dx = random.uniform(-3, 3)
+        self.dy = random.uniform(1, 3)
+        self.gravity = 0.2
         self.font = pygame.font.SysFont("Arial", 24)  # 建立自己的字型物件
 
-    def move(self):
+    def move(self, screen_height):
+        self.y += self.gravity
+
+        self.x += self.dx
         self.y += self.dy
 
     def draw(self, win):
