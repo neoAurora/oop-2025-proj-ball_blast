@@ -18,6 +18,8 @@ class Ball:
         self.gravity = 0.2
         self.has_bounced = False
 
+        self.original_hp = hp
+
         self.max_splits = max_splits  # 最大分裂次數
         self.splits_remaining = max_splits  # 剩餘分裂次數
         
@@ -88,7 +90,7 @@ class Ball:
         self.splits_remaining -= 1  # 減少剩餘分裂次數
         
         new_radius = self.radius // 2
-        new_hp = max(1, self.hp // 2)
+        new_hp = max(1, self.original_hp // 2)
         
         # 新球體繼承分裂次數
         left_ball = self._create_split_ball(
@@ -103,6 +105,7 @@ class Ball:
         try:
             new_ball = Ball(x, self.y, radius, hp)
             new_ball.max_splits = self.max_splits
+            new_ball.original_hp = hp
             new_ball.splits_remaining = splits_remaining
             new_ball.current_image = pygame.transform.scale(
                 self.current_image, (radius*2, radius*2))
