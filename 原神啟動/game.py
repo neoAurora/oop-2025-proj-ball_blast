@@ -20,6 +20,10 @@ class Game:
         self.clock = pygame.time.Clock()
         self.font = pygame.font.SysFont("Arial", 24)
 
+        self.max_bullets = 5      # 最大子弹数量
+        self.bullet_cooldown = 10 # 子弹发射冷却时间（帧数）
+        self.cooldown_timer = 0   # 冷却计时器
+
     def spawn_ball(self):
         x = random.randint(50, self.width - 50)
         radius = random.randint(20, 30)
@@ -49,7 +53,7 @@ class Game:
 
     def check_game_over(self):
         for ball in self.balls:
-            if abs(ball.x - self.cannon.x) < ball.radius and abs(ball.y - self.cannon.y) < ball.radius:
+            if ball.hp > 0 and abs(ball.x - self.cannon.x) < ball.radius and abs(ball.y - self.cannon.y) < ball.radius:
                 self.running = False
 
     def draw(self):
@@ -67,24 +71,34 @@ class Game:
     def run(self):
         while self.running:
             self.clock.tick(60)
+        
+            # 处理事件
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
 
+            # 炮台移动
             keys = pygame.key.get_pressed()
             if keys[pygame.K_LEFT]:
                 self.cannon.move("LEFT", self.width)
             if keys[pygame.K_RIGHT]:
                 self.cannon.move("RIGHT", self.width)
-            if keys[pygame.K_SPACE] and len(self.bullets) < 5:
-                self.bullets.append(Bullet(self.cannon.x, self.cannon.y))
 
+            # 子弹发射逻辑（按住空格键可以连发）
+            if keys[pygame.K_SPACE]:
+                if len(self.bullets) < self.max_bullets and self.cooldown_timer <= 0:
+                    self.bullets.append(Bullet(self.cannon.x, self.cannon.y))
+                    self.cooldown_timer = self.bullet_cooldown  # 重置冷却时间
+            self.cooldown_timer -= 1  # 冷却计时器递减
+
+            # 生成新球
             self.spawn_timer += 1
             if self.spawn_timer > 60:
                 self.spawn_ball()
                 self.spawn_timer = 0
 
-            for ball in self.balls:
+            # 更新球和子弹
+            for ball in self.balls[:]:
                 ball.move()
             self.handle_bullets()
             self.handle_collisions()
