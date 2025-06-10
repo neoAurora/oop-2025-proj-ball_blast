@@ -7,7 +7,7 @@ import os
 class Ball:
     _ball_images = None
     
-    def __init__(self, x, y, radius, hp):
+    def __init__(self, x, y, radius, hp, max_splits = 4):
         self.x = x
         self.y = y
         self.radius = radius
@@ -17,6 +17,9 @@ class Ball:
         self.elasticity = 0.7
         self.gravity = 0.2
         self.has_bounced = False
+
+        self.max_splits = max_splits  # 最大分裂次數
+        self.splits_remaining = max_splits  # 剩餘分裂次數
         
         # 圖片載入
         self._load_images()
@@ -78,31 +81,34 @@ class Ball:
         return self.mask.overlap(bullet_mask, offset)
 
     def split(self):
-        """修正後的分裂方法：確保返回新球體列表"""
-        if self.radius <= 15:  # 增加hp檢查
-            return []  # 無法分裂時返回空列表
-
+        """修改後的分裂方法"""
+        if self.radius <= 2 or self.splits_remaining <= 0:
+            return []
+            
+        self.splits_remaining -= 1  # 減少剩餘分裂次數
+        
         new_radius = self.radius // 2
-        new_hp = max(1, self.hp // 2)  # 確保HP至少為1
-
-        # 確保新球體有最小尺寸和HP
-        new_radius = max(10, new_radius)  # 最小半徑10
-        new_hp = max(1, new_hp)          # 最小HP為1
+        new_hp = max(1, self.hp // 2)
         
-        left_ball = self._create_split_ball(self.x - new_radius, new_radius, new_hp)
-        right_ball = self._create_split_ball(self.x + new_radius, new_radius, new_hp)
+        # 新球體繼承分裂次數
+        left_ball = self._create_split_ball(
+            self.x - new_radius, new_radius, new_hp, self.splits_remaining)
+        right_ball = self._create_split_ball(
+            self.x + new_radius, new_radius, new_hp, self.splits_remaining)
         
-        return [ball for ball in [left_ball, right_ball] if ball is not None]  # 過濾None
+        return [b for b in [left_ball, right_ball] if b is not None]
 
-    def _create_split_ball(self, x, radius, hp):
-        """安全創建球體"""
+    def _create_split_ball(self, x, radius, hp, splits_remaining):
+        """修改創建方法以傳遞分裂次數"""
         try:
             new_ball = Ball(x, self.y, radius, hp)
+            new_ball.max_splits = self.max_splits
+            new_ball.splits_remaining = splits_remaining
             new_ball.current_image = pygame.transform.scale(
                 self.current_image, (radius*2, radius*2))
             new_ball.mask = pygame.mask.from_surface(new_ball.current_image)
             new_ball.dx = random.uniform(-2, 2)
-            new_ball.dy = random.uniform(-3, -1)  # 向上彈跳
+            new_ball.dy = random.uniform(-3, -1)
             new_ball.has_bounced = False
             return new_ball
         except Exception as e:
