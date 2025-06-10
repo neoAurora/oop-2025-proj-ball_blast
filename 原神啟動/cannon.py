@@ -10,6 +10,8 @@ class Cannon:
             (200, 200))
         self.rect = self.image.get_rect(center=(x, y))
 
+        self.mask = pygame.mask.from_surface(self.image)
+
     def move(self, direction, screen_width):
         if direction == "LEFT" and self.x - self.speed > 0:
             self.x -= self.speed
