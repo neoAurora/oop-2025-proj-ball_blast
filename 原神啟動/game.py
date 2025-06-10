@@ -118,11 +118,21 @@ class Game:
                     break
 
     def check_game_over(self):
-        """檢查遊戲結束條件"""
+        """檢查遊戲結束條件：若任何 Ball 的 mask 和 Cannon 的 mask 重疊，就結束遊戲。"""
         for ball in self.balls:
-            if (abs(ball.x - self.cannon.x - 15) < ball.radius and 
-                abs(ball.y - self.cannon.y + 65) < ball.radius):
+            # 1. 計算球在畫面上的 Rect（中心對齊）
+            ball_rect = ball.current_image.get_rect(center=(int(ball.x), int(ball.y)))
+
+            # 2. 算出 ball_rect 和 cannon.rect 的左上角差距 (offset)
+            offset_x = ball_rect.left - self.cannon.rect.left
+            offset_y = ball_rect.top - self.cannon.rect.top
+            offset = (offset_x, offset_y)
+
+            # 3. 用 mask.overlap() 做精準碰撞檢測
+            #    當 offset 傳入時，如果有一個像素點同時在 ball.mask & cannon.mask 都是「1」，就回傳 non-None
+            if self.cannon.mask.overlap(ball.mask, offset):
                 self.running = False
+                return
 
     def render(self):
         """渲染遊戲畫面"""
