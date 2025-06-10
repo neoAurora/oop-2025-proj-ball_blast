@@ -11,7 +11,7 @@ class Game:
     def __init__(self, screen):
         self.screen = screen
         self.width, self.height = screen.get_size()
-        self.cannon = Cannon(self.width // 2, self.height - 50)
+        self.cannon = Cannon(self.width // 2, self.height - 120)
         self.bullets = []
         self.balls = []
         self.spawn_timer = 0
