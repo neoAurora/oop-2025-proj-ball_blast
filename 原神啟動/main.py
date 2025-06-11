@@ -12,13 +12,6 @@ SCREEN_HEIGHT = 800
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Ball Blast - OOP Project")
 
-# 顏色定義
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-RED = (255, 0, 0)
-GRAY = (100, 100, 100)
-TRANSPARENT = (0, 0, 0, 128)
-
 def load_image(name, scale=None):
     """加載並可選縮放圖片"""
     try:
@@ -32,7 +25,7 @@ def load_image(name, scale=None):
         surf = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
         surf.fill((100, 200, 100))
         font = pygame.font.SysFont("Arial", 36)
-        text = font.render("圖片加載失敗", True, BLACK)
+        text = font.render("圖片加載失敗", True, (0, 0, 0))
         surf.blit(text, (SCREEN_WIDTH//2 - text.get_width()//2, 
                          SCREEN_HEIGHT//2 - text.get_height()//2))
         return surf
@@ -55,9 +48,9 @@ def show_first_page():
             prompt_timer = 0
         
         if show_prompt:
-            prompt = font.render("Press ENTER to Start", True, WHITE)
+            prompt = font.render("Press ENTER to Start", True, (255, 255, 255))
             prompt_rect = prompt.get_rect(center=(SCREEN_WIDTH//2, SCREEN_HEIGHT - 50))
-            pygame.draw.rect(screen, BLACK, 
+            pygame.draw.rect(screen, (0, 0, 0), 
                            (prompt_rect.x-10, prompt_rect.y-10, 
                             prompt_rect.width+20, prompt_rect.height+20))
             screen.blit(prompt, prompt_rect)
@@ -80,15 +73,15 @@ def show_first_page():
 def show_pause_screen():
     """顯示暫停畫面"""
     overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
-    overlay.fill(TRANSPARENT)
+    overlay.fill((0, 0, 0, 128))
     screen.blit(overlay, (0, 0))
     
     font_large = pygame.font.SysFont("Arial", 48)
     font_medium = pygame.font.SysFont("Arial", 36)
     
-    paused = font_large.render("PAUSED", True, WHITE)
-    resume = font_medium.render("Press ESC to Resume", True, WHITE)
-    quit_text = font_medium.render("Press Q to Quit", True, WHITE)
+    paused = font_large.render("PAUSED", True, (255, 255, 255))
+    resume = font_medium.render("Press ESC to Resume", True, (255, 255, 255))
+    quit_text = font_medium.render("Press Q to Quit", True, (255, 255, 255))
     
     screen.blit(paused, (SCREEN_WIDTH//2 - paused.get_width()//2, 300))
     screen.blit(resume, (SCREEN_WIDTH//2 - resume.get_width()//2, 400))
@@ -112,16 +105,16 @@ def show_pause_screen():
 def show_game_over_screen(score):
     """顯示遊戲結束畫面"""
     overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
-    overlay.fill(TRANSPARENT)
+    overlay.fill((0, 0, 0, 128))
     screen.blit(overlay, (0, 0))
     
     font_large = pygame.font.SysFont("Arial", 48)
     font_medium = pygame.font.SysFont("Arial", 36)
     
-    game_over = font_large.render("GAME OVER", True, RED)
-    score_text = font_medium.render(f"Final Score: {score}", True, WHITE)
-    restart = font_medium.render("Press ENTER to Restart", True, WHITE)
-    quit_text = font_medium.render("Press Q to Quit", True, WHITE)
+    game_over = font_large.render("GAME OVER", True, (255, 0, 0))
+    score_text = font_medium.render(f"Final Score: {score}", True, (255, 255, 255))
+    restart = font_medium.render("Press ENTER to Restart", True, (255, 255, 255))
+    quit_text = font_medium.render("Press Q to Quit", True, (255, 255, 255))
     
     screen.blit(game_over, (SCREEN_WIDTH//2 - game_over.get_width()//2, 250))
     screen.blit(score_text, (SCREEN_WIDTH//2 - score_text.get_width()//2, 320))
