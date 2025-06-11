@@ -5,6 +5,7 @@ import random
 import os
 
 class Ball:
+    # 類別變數：預載所有球體圖片（避免重複載入）
     _ball_images = None
     
     def __init__(self, x, y, radius, hp, max_splits = 4):
@@ -12,26 +13,31 @@ class Ball:
         self.y = y
         self.radius = radius
         self.hp = hp
-        self.dx = random.uniform(-3, 3)
-        self.dy = random.uniform(1, 3)
-        self.elasticity = 0.7
-        self.gravity = 0.2
-        self.has_bounced = False
-
         self.original_hp = hp
-
-        self.max_splits = max_splits  # 最大分裂次數
-        self.splits_remaining = max_splits  # 剩餘分裂次數
+        self.max_splits = max_splits     #最大分裂次數
+        self.splits_remaining = max_splits
         
-        # 圖片載入
+        # 初始化物理參數
+        self.dx = random.uniform(-3, 3)  # 水平速度
+        self.dy = random.uniform(1, 3)   # 垂直速度
+        self.gravity = 0.1               # 重力加速度
+        self.elasticity = 0.95           #橫向彈性係數
+        
+        # 載入圖片資源
         self._load_images()
+        
+        # 隨機選擇圖片並縮放
         self.current_image = random.choice(self._ball_images)
         self.current_image = pygame.transform.scale(
-            self.current_image, 
-            (radius*2, radius*2)
+            self.current_image,
+            (radius*2, radius*2)  # 根據半徑調整大小
         )
-        self.mask = pygame.mask.from_surface(self.current_image)
+        
+        # 文字渲染
         self.font = pygame.font.SysFont("Arial", 24)
+        
+        # 碰撞遮罩（用於精確碰撞檢測）
+        self.mask = pygame.mask.from_surface(self.current_image)
 
     @classmethod
     def _load_images(cls):
@@ -47,19 +53,20 @@ class Ball:
             cls._ball_images.append(img)
 
     def move(self, screen_width, screen_height):
+        """更新球體位置（含邊界反彈）"""
+        # 應用重力
         self.dy += self.gravity
+        
+        # 更新位置
         self.x += self.dx
         self.y += self.dy
         
-        if self.y + self.radius >= screen_height - 100:
+        # 底部反彈
+        if self.y + self.radius >= screen_height - 100:  # -100 留出地面空間
             self.y = screen_height - 100 - self.radius
-            if not self.has_bounced:
-                self.dy = -self.dy * self.elasticity
-                self.has_bounced = True
-            else:
-                self.dy = -abs(self.dy)
-            self.dx *= 0.9
-        
+            self.dy = -10
+            
+        # 側邊反彈
         if self.x - self.radius <= 0:
             self.x = self.radius
             self.dx = -self.dx * self.elasticity
@@ -68,13 +75,17 @@ class Ball:
             self.dx = -self.dx * self.elasticity
 
     def draw(self, win):
+        """繪製球體（使用圖片替代圓形）"""
+        # 計算繪製位置（中心對齊）
         img_rect = self.current_image.get_rect(center=(int(self.x), int(self.y)))
         win.blit(self.current_image, img_rect)
+        
+        # 繪製HP文字（居中）
         text = self.font.render(str(self.hp), True, (255, 255, 255))
-        win.blit(text, (self.x - text.get_width()//2, self.y - text.get_height()//2))
+        text_rect = text.get_rect(center=(self.x, self.y))
+        win.blit(text, text_rect)
 
     def is_hit(self, bullet):
-        """檢測與子彈的碰撞（使用子彈的 image & mask 做 pixel-level 碰撞）"""
         # 1. 先用簡易的矩形包圍盒（AABB）做一次快篩 (optional)
         ball_rect = self.current_image.get_rect(center=(int(self.x), int(self.y)))
         bullet_rect = bullet.image.get_rect(center=(int(bullet.x), int(bullet.y)))
@@ -90,41 +101,35 @@ class Ball:
 
         # 3. 呼叫 mask.overlap() 來檢查是否有真正的像素重疊
         #    如果有重疊就回傳 (non-None)；否則回傳 None
-        overlap_point = self.mask.overlap(bullet.mask, offset)
-        return overlap_point is not None
+        return self.mask.overlap(bullet.mask, offset) is not None
 
     def split(self):
-        """修改後的分裂方法"""
+        """分裂球體（保持相同圖片）"""
         if self.radius <= 2 or self.splits_remaining <= 0:
             return []
-            
-        self.splits_remaining -= 1  # 減少剩餘分裂次數
         
-        new_radius = self.radius // 2
+        self.splits_remaining -= 1  
+        new_radius = self.radius // 1.4
         new_hp = max(1, self.original_hp // 2)
         
-        # 新球體繼承分裂次數
-        left_ball = self._create_split_ball(
-            self.x - new_radius, new_radius, new_hp, self.splits_remaining)
-        right_ball = self._create_split_ball(
-            self.x + new_radius, new_radius, new_hp, self.splits_remaining)
+        left_ball = self._create_split_ball(self.x - new_radius, new_radius, new_hp)
+        right_ball = self._create_split_ball(self.x + new_radius, new_radius, new_hp)
+        return [ball for ball in [left_ball, right_ball] if ball is not None]
+    
+    def _create_split_ball(self, x, radius, hp):
+        """創建分裂後的子球體"""
+        new_ball = Ball(x, self.y, radius, hp)
+        new_ball.max_splits = self.max_splits
+        new_ball.splits_remaining = self.splits_remaining
         
-        return [b for b in [left_ball, right_ball] if b is not None]
-
-    def _create_split_ball(self, x, radius, hp, splits_remaining):
-        """修改創建方法以傳遞分裂次數"""
-        try:
-            new_ball = Ball(x, self.y, radius, hp)
-            new_ball.max_splits = self.max_splits
-            new_ball.original_hp = hp
-            new_ball.splits_remaining = splits_remaining
-            new_ball.current_image = pygame.transform.scale(
-                self.current_image, (radius*2, radius*2))
-            new_ball.mask = pygame.mask.from_surface(new_ball.current_image)
-            new_ball.dx = random.uniform(-2, 2)
-            new_ball.dy = random.uniform(-3, -1)
-            new_ball.has_bounced = False
-            return new_ball
-        except Exception as e:
-            print(f"Error creating split ball: {e}")
-            return None
+        # 複製當前圖片（避免重新隨機選擇）
+        new_ball.current_image = pygame.transform.scale(
+            self.current_image,
+            (radius*2, radius*2)
+        )
+        new_ball.mask = pygame.mask.from_surface(new_ball.current_image)
+        
+        # 調整物理參數
+        new_ball.dx = random.uniform(-2, 2)
+        new_ball.dy = random.uniform(-3, -1)  # 向上彈跳
+        return new_ball
