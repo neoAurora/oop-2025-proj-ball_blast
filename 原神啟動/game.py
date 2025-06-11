@@ -117,7 +117,7 @@ class Game:
                         if ball.radius >= ball.max_radius:
                             # 當獎勵球達到最大尺寸時消失，並增加子彈速度
                             self.balls.remove(ball)
-                            self.bullets_per_wave += 1  # 增加每波子彈數量
+                            self.bullets_per_second += 3  # 增加每波子彈數量
                             self.score += 50  # 額外分數獎勵
                     else:
                         # 普通球的處理邏輯
