@@ -9,6 +9,7 @@ class Game:
     def __init__(self, screen):
         self.screen = screen
         self.width, self.height = screen.get_size()
+
         
         # 初始化遊戲資源
         self.background = pygame.transform.scale(
@@ -36,20 +37,21 @@ class Game:
         self.spawn_timer = 0
         
         # 遊戲參數
-        self.wave_interval = 30    # 0.5秒一波
-        self.bullet_delay = 6      # 0.1秒一發
+        self.wave_interval = 15    # 1秒一波
+        self.bullet_delay = 3      # 0.05秒一發
         self.bullets_per_wave = 5  # 每波5發
 
     def spawn_ball(self):
+        """生成新球體"""
         ball = Ball(
             x=random.randint(50, self.width-50),
             y=0,
-            radius=random.randint(60, 80),
-            hp=random.randint(5, 10),
-            max_splits=4  # 初始球有4次分裂機會
+            radius=random.randint(40, 70),
+            hp=random.randint(20, 30),
+            max_splits = 3   #初始球最多分裂3次
         )
-        ball.dx = random.uniform(-4, 4)
-        ball.dy = random.uniform(1, 2.5)
+        ball.dx = random.uniform(-4, 4)  # 水平速度
+        ball.dy = random.uniform(1, 2.5) # 垂直速度
         self.balls.append(ball)
 
     def handle_events(self):
@@ -57,7 +59,6 @@ class Game:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
-
     def handle_input(self):
         """處理玩家輸入"""
         keys = pygame.key.get_pressed()
@@ -91,7 +92,7 @@ class Game:
         """更新球體狀態"""
         # 生成新球
         self.spawn_timer += 1
-        if self.spawn_timer > 150:
+        if self.spawn_timer > 300:
             self.spawn_timer = 0
             self.spawn_ball()
 
@@ -106,13 +107,13 @@ class Game:
                 if ball.is_hit(bullet):
                     ball.hp -= 1
                     self.bullets.remove(bullet)
-                    
+
                     if ball.hp <= 0:
                         self.balls.remove(ball)
-                        # 只有當球體消失時才檢查分裂條件
-                        if ball.radius > 2 and ball.splits_remaining > 0:
+
+                        if ball.radius > 10 and ball.splits_remaining > 0:
                             new_balls = ball.split()
-                            if new_balls:  # 確保有成功分裂
+                            if new_balls:
                                 self.balls.extend(new_balls)
                                 self.score += 10
                     break
@@ -146,23 +147,20 @@ class Game:
         # 繪製分數
         score_text = self.font.render(f"Score: {self.score}", True, (0, 0, 0))
         self.screen.blit(score_text, (10, 10))
-        
 
         pygame.display.update()
 
     def run(self):
-        """主遊戲循環"""
-        while self.running:
-            self.handle_events()
-            self.handle_input()
-            
-            self.update_bullets()
-            self.update_balls()
-            self.handle_collisions()
-            self.check_game_over()
-            
-            self.render()
-            self.clock.tick(60)
+        """執行一幀遊戲邏輯"""
+        if not self.running:
+            return
+        self.handle_events()
+        self.handle_input()
+        self.update_bullets()
+        self.update_balls()
+        self.handle_collisions()
+        self.check_game_over()
+        self.render()
 
-        print("Game Over! Final Score:", self.score)
-        pygame.quit()
+
+        
