@@ -30,21 +30,20 @@ class Game:
         self.score = 0
         self.running = True
         self.clock = pygame.time.Clock()
-        
-        # 射擊計時器
-        self.wave_timer = 0
-        self.bullet_cooldown = 0
-        self.bullet_in_wave = 0
+
         self.spawn_timer = 0
         
+        # 射擊計時器
+        self.last_shot_time = 0  # 記錄上次射擊時間
+        self.shot_delay = 50     # 射擊間隔(毫秒)，1000/20=50ms per bullet
+        
         # 遊戲參數
-        self.wave_interval = 30    # 0.5秒一波
-        self.bullet_delay = 3      # 0.05秒一發
-        self.bullets_per_wave = 5  # 每波5發
+        self.bullets_per_second = 20  # 每秒20發子彈
+
 
     def spawn_ball(self):
         """生成新球體，有小機率生成獎勵球"""
-        if random.random() < 0.8:  # 10%機率生成獎勵球
+        if random.random() < 0.2:  # 10%機率生成獎勵球
             ball = RewardBall(
                 x=random.randint(50, self.width-50),
                 y=0
@@ -77,20 +76,16 @@ class Game:
             self.cannon.move("RIGHT", self.width)
 
     def update_bullets(self):
-        """更新子彈狀態"""
-        # 自動射擊邏輯
-        self.wave_timer += 1
-        if self.wave_timer >= self.wave_interval:
-            self.wave_timer = 0
-            self.bullet_in_wave = 0
+        """更新子彈狀態 - 連續射擊版本"""
+        # 獲取當前時間(毫秒)
+        current_time = pygame.time.get_ticks()
         
-        if self.bullet_in_wave < self.bullets_per_wave:
-            self.bullet_cooldown += 1
-            if self.bullet_cooldown >= self.bullet_delay:
-                self.bullet_cooldown = 0
-                self.bullets.append(Bullet(self.cannon.x, self.cannon.y))
-                self.bullet_in_wave += 1
-
+        # 檢查是否達到射擊間隔
+        if current_time - self.last_shot_time > self.shot_delay:
+            self.last_shot_time = current_time
+            # 發射新子彈
+            self.bullets.append(Bullet(self.cannon.x, self.cannon.y))
+        
         # 移動子彈並移除超出屏幕的
         for bullet in self.bullets[:]:
             bullet.move()
