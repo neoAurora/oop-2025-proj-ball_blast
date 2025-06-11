@@ -21,4 +21,3 @@ class Bullet:
 
     def draw(self, win):
         win.blit(self.image, self.rect)
-
