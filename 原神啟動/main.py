@@ -2,6 +2,7 @@
 import pygame
 import sys
 from game import Game
+from leaderboard import Leaderboard
 
 # 初始化pygame
 pygame.init()
@@ -138,8 +139,16 @@ def show_game_over_screen(score):
 
 def main():
     """主遊戲循環"""
+    leaderboard = Leaderboard(SCREEN_WIDTH, SCREEN_HEIGHT)  # 創建排行榜實例
+
     while True:
         show_first_page()
+
+        # 獲取玩家名稱
+        player_name = leaderboard.get_player_name(screen)
+        if player_name is None:  # 玩家關閉了窗口
+            pygame.quit()
+            sys.exit()
         
         # 遊戲實例化
         game = Game(screen)
@@ -166,7 +175,9 @@ def main():
             # 檢查遊戲結束
             if not game.running:
                 print("Game Over! Final Score:", game.score)
-                if show_game_over_screen(game.score):
+                # 顯示排行榜並獲取是否重新開始
+                restart = leaderboard.show_leaderboard(screen, game.score)
+                if restart:
                     break  # 重新開始遊戲
                 else:
                     pygame.quit()
