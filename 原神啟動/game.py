@@ -112,10 +112,8 @@ class Game:
                         self.balls.remove(ball)
 
                         if ball.radius > 10 and ball.splits_remaining > 0:
-                            new_balls = ball.split()
-                            if new_balls:
-                                self.balls.extend(new_balls)
-                                self.score += 10
+                            self.balls.extend(ball.split())
+                            self.score += 10
                     break
 
     def check_game_over(self):
@@ -127,11 +125,9 @@ class Game:
             # 2. 算出 ball_rect 和 cannon.rect 的左上角差距 (offset)
             offset_x = ball_rect.left - self.cannon.rect.left
             offset_y = ball_rect.top - self.cannon.rect.top
-            offset = (offset_x, offset_y)
 
             # 3. 用 mask.overlap() 做精準碰撞檢測
-            #    當 offset 傳入時，如果有一個像素點同時在 ball.mask & cannon.mask 都是「1」，就回傳 non-None
-            if self.cannon.mask.overlap(ball.mask, offset):
+            if self.cannon.mask.overlap(ball.mask, (offset_x, offset_y)):
                 self.running = False
                 return
 
@@ -161,6 +157,3 @@ class Game:
         self.handle_collisions()
         self.check_game_over()
         self.render()
-
-
-        
