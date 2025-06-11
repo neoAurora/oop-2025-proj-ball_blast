@@ -4,6 +4,7 @@ import random
 from cannon import Cannon
 from bullet import Bullet
 from ball import Ball
+from ball import RewardBall
 
 class Game:
     def __init__(self, screen):
@@ -37,21 +38,29 @@ class Game:
         self.spawn_timer = 0
         
         # 遊戲參數
-        self.wave_interval = 15    # 1秒一波
+        self.wave_interval = 30    # 0.5秒一波
         self.bullet_delay = 3      # 0.05秒一發
         self.bullets_per_wave = 5  # 每波5發
 
     def spawn_ball(self):
-        """生成新球體"""
-        ball = Ball(
-            x=random.randint(50, self.width-50),
-            y=0,
-            radius=random.randint(40, 70),
-            hp=random.randint(20, 30),
-            max_splits = 3   #初始球最多分裂3次
-        )
-        ball.dx = random.uniform(-4, 4)  # 水平速度
-        ball.dy = random.uniform(1, 2.5) # 垂直速度
+        """生成新球體，有小機率生成獎勵球"""
+        if random.random() < 0.8:  # 10%機率生成獎勵球
+            ball = RewardBall(
+                x=random.randint(50, self.width-50),
+                y=0
+            )
+            ball.dx = random.uniform(-4, 4)
+            ball.dy = random.uniform(1, 2.5)
+        else:
+            ball = Ball(
+                x=random.randint(50, self.width-50),
+                y=0,
+                radius=random.randint(40, 70),
+                hp=random.randint(20, 30),
+                max_splits=3
+            )
+            ball.dx = random.uniform(-4, 4)
+            ball.dy = random.uniform(1, 2.5)
         self.balls.append(ball)
 
     def handle_events(self):
@@ -108,12 +117,21 @@ class Game:
                     ball.hp -= 1
                     self.bullets.remove(bullet)
 
-                    if ball.hp <= 0:
-                        self.balls.remove(ball)
-
-                        if ball.radius > 10 and ball.splits_remaining > 0:
-                            self.balls.extend(ball.split())
-                            self.score += 10
+                    if isinstance(ball, RewardBall):
+                        # 獎勵球沒有HP概念，只有被擊中會變大
+                        if ball.radius >= ball.max_radius:
+                            # 當獎勵球達到最大尺寸時消失，並增加子彈速度
+                            self.balls.remove(ball)
+                            self.bullets_per_wave += 1  # 增加每波子彈數量
+                            self.score += 50  # 額外分數獎勵
+                    else:
+                        # 普通球的處理邏輯
+                        ball.hp -= 1
+                        if ball.hp <= 0:
+                            self.balls.remove(ball)
+                            if ball.radius > 10 and ball.splits_remaining > 0:
+                                self.balls.extend(ball.split())
+                                self.score += 10
                     break
 
     def check_game_over(self):
