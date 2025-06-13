@@ -2,6 +2,7 @@
 import pygame
 import sys
 from game import Game
+from leaderboard import Leaderboard
 from network_manager import NetworkManager
 
 # 初始化pygame
@@ -55,11 +56,12 @@ def show_main_menu():
         # 選項
         single_text = font_option.render("1 - Single Player", True, (255, 255, 255))
         multi_text = font_option.render("2 - Multiplayer", True, (255, 255, 255))
+        leaderboard_text = font_option.render("3 - View Leaderboard", True, (255, 255, 255))
         quit_text = font_option.render("ESC - Quit", True, (255, 255, 255))
         
         # 背景框
-        options = [single_text, multi_text, quit_text]
-        y_positions = [400, 450, 500]
+        options = [single_text, multi_text, leaderboard_text, quit_text]
+        y_positions = [380, 420, 460, 500]
         
         for i, (text, y_pos) in enumerate(zip(options, y_positions)):
             text_rect = text.get_rect(center=(SCREEN_WIDTH//2, y_pos))
@@ -76,7 +78,7 @@ def show_main_menu():
         
         if show_text:
             prompt = font_option.render("Choose your option", True, (255, 255, 0))
-            prompt_rect = prompt.get_rect(center=(SCREEN_WIDTH//2, 350))
+            prompt_rect = prompt.get_rect(center=(SCREEN_WIDTH//2, 330))
             pygame.draw.rect(screen, (0, 0, 0), 
                            (prompt_rect.x-10, prompt_rect.y-10, 
                             prompt_rect.width+20, prompt_rect.height+20))
@@ -93,6 +95,8 @@ def show_main_menu():
                     return "single"
                 elif event.key == pygame.K_2:
                     return "multiplayer"
+                elif event.key == pygame.K_3:
+                    return "leaderboard"
                 elif event.key == pygame.K_ESCAPE:
                     pygame.quit()
                     sys.exit()
@@ -308,12 +312,20 @@ def show_game_over_screen(score, other_score=None, is_multiplayer=False):
         
         pygame.time.Clock().tick(60)
 
-def run_single_player():
-    """運行單人遊戲"""
+def run_single_player(leaderboard):
+    """運行單人遊戲 - 包含排行榜功能"""
+    # 獲取玩家名稱
+    player_name = leaderboard.get_player_name(screen)
+    if player_name is None:  # 玩家關閉了窗口
+        return
+    
+    # 遊戲實例化
     game = Game(screen, multiplayer=False)
     
+    # 遊戲主循環
     game_active = True
     while game_active:
+        # 處理事件
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -326,14 +338,18 @@ def run_single_player():
         if not game_active:
             break
         
+        # 運行遊戲幀
         game.run()
         
+        # 檢查遊戲結束
         if not game.running:
-            if show_game_over_screen(game.score):
+            print("Game Over! Final Score:", game.score)
+            # 顯示排行榜並獲取是否重新開始
+            restart = leaderboard.show_leaderboard(screen, game.score, player_name)
+            if restart:
                 break  # 重新開始遊戲
             else:
-                pygame.quit()
-                sys.exit()
+                return
         
         pygame.display.flip()
         pygame.time.Clock().tick(60)
@@ -370,26 +386,33 @@ def run_multiplayer(network_manager):
                 break  # 重新開始遊戲
             else:
                 network_manager.disconnect()
-                pygame.quit()
-                sys.exit()
+                return
         
         pygame.display.flip()
         pygame.time.Clock().tick(60)
     
     network_manager.disconnect()
 
+def show_leaderboard_only(leaderboard):
+    """只顯示排行榜（不遊戲）"""
+    leaderboard.show_leaderboard(screen, score=None, player_name=None, view_only=True)
+
 def main():
     """主遊戲循環"""
+    leaderboard = Leaderboard(SCREEN_WIDTH, SCREEN_HEIGHT)  # 創建排行榜實例
+    
     while True:
         # 顯示主選單
         choice = show_main_menu()
         
         if choice == "single":
-            run_single_player()
+            run_single_player(leaderboard)
         elif choice == "multiplayer":
             network_manager = show_connection_screen()
             if network_manager:
                 run_multiplayer(network_manager)
+        elif choice == "leaderboard":
+            show_leaderboard_only(leaderboard)
 
 if __name__ == "__main__":
     main()
