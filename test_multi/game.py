@@ -1,9 +1,10 @@
-# game.py
+# game.py - Merged version with multiplayer and reward balls
 import pygame
 import random
 from cannon import Cannon
 from bullet import Bullet
 from ball import Ball
+from ball import RewardBall
 
 class Game:
     def __init__(self, screen, multiplayer=False, network_manager=None, player_id=0):
@@ -32,6 +33,8 @@ class Game:
             # 單人模式：只有一個大砲在中央
             self.my_cannon = Cannon(self.width//2, self.height-130)
             self.other_cannon = None
+            # 為了保持代碼一致性，在單人模式下也使用 my_cannon
+            self.cannon = self.my_cannon
         
         self.font = pygame.font.SysFont("Arial", 24)
         
@@ -40,36 +43,55 @@ class Game:
 
     def reset_game_state(self):
         """重置遊戲運行狀態"""
-        self.my_bullets = []
-        self.other_bullets = []
+        if self.multiplayer:
+            self.my_bullets = []
+            self.other_bullets = []
+        else:
+            self.bullets = []
+        
         self.balls = []
         self.score = 0
         self.other_score = 0
         self.running = True
         self.clock = pygame.time.Clock()
         
-        # 射擊計時器
-        self.wave_timer = 0
-        self.bullet_cooldown = 0
-        self.bullet_in_wave = 0
-        self.spawn_timer = 0
+        # 射擊計時器 - 合併兩種射擊系統
+        if self.multiplayer:
+            # 多人模式使用波次射擊系統
+            self.wave_timer = 0
+            self.bullet_cooldown = 0
+            self.bullet_in_wave = 0
+            self.wave_interval = 15    # 1秒一波
+            self.bullet_delay = 3      # 0.05秒一發
+            self.bullets_per_wave = 5  # 每波5發
+        else:
+            # 單人模式使用連續射擊系統
+            self.last_shot_time = 0   # 記錄上次射擊時間
+            self.shot_delay = 50      # 射擊間隔(毫秒)
+            self.bullets_per_second = 20  # 每秒20發子彈
         
-        # 遊戲參數
-        self.wave_interval = 15    # 1秒一波
-        self.bullet_delay = 3      # 0.05秒一發
-        self.bullets_per_wave = 5  # 每波5發
+        self.spawn_timer = 0
 
     def spawn_ball(self):
-        """生成新球體"""
-        ball = Ball(
-            x=random.randint(50, self.width-50),
-            y=0,
-            radius=random.randint(40, 70),
-            hp=random.randint(20, 30),
-            max_splits = 3   #初始球最多分裂3次
-        )
-        ball.dx = random.uniform(-4, 4)  # 水平速度
-        ball.dy = random.uniform(1, 2.5) # 垂直速度
+        """生成新球體，有小機率生成獎勵球"""
+        if random.random() < 0.2:  # 20%機率生成獎勵球
+            ball = RewardBall(
+                x=random.randint(50, self.width-50),
+                y=0
+            )
+            ball.dx = random.uniform(-4, 4)
+            ball.dy = random.uniform(1, 2.5)
+        else:
+            ball = Ball(
+                x=random.randint(50, self.width-50),
+                y=0,
+                radius=random.randint(40, 70),
+                hp=random.randint(20, 30),
+                max_splits=3   # 初始球最多分裂3次
+            )
+            ball.dx = random.uniform(-4, 4)  # 水平速度
+            ball.dy = random.uniform(1, 2.5) # 垂直速度
+        
         self.balls.append(ball)
 
     def handle_events(self):
@@ -87,32 +109,47 @@ class Game:
             self.my_cannon.move("RIGHT", self.width)
 
     def update_bullets(self):
-        """更新子彈狀態"""
-        # 自動射擊邏輯
-        self.wave_timer += 1
-        if self.wave_timer >= self.wave_interval:
-            self.wave_timer = 0
-            self.bullet_in_wave = 0
-        
-        if self.bullet_in_wave < self.bullets_per_wave:
-            self.bullet_cooldown += 1
-            if self.bullet_cooldown >= self.bullet_delay:
-                self.bullet_cooldown = 0
-                self.my_bullets.append(Bullet(self.my_cannon.x, self.my_cannon.y))
-                self.bullet_in_wave += 1
-
-        # 移動我的子彈並移除超出屏幕的
-        for bullet in self.my_bullets[:]:
-            bullet.move()
-            if bullet.y < 0:
-                self.my_bullets.remove(bullet)
-        
-        # 移動對方的子彈（多人模式）
+        """更新子彈狀態 - 支持兩種射擊模式"""
         if self.multiplayer:
+            # 多人模式：波次射擊系統
+            self.wave_timer += 1
+            if self.wave_timer >= self.wave_interval:
+                self.wave_timer = 0
+                self.bullet_in_wave = 0
+            
+            if self.bullet_in_wave < self.bullets_per_wave:
+                self.bullet_cooldown += 1
+                if self.bullet_cooldown >= self.bullet_delay:
+                    self.bullet_cooldown = 0
+                    self.my_bullets.append(Bullet(self.my_cannon.x, self.my_cannon.y))
+                    self.bullet_in_wave += 1
+
+            # 移動我的子彈並移除超出屏幕的
+            for bullet in self.my_bullets[:]:
+                bullet.move()
+                if bullet.y < 0:
+                    self.my_bullets.remove(bullet)
+            
+            # 移動對方的子彈
             for bullet in self.other_bullets[:]:
                 bullet.move()
                 if bullet.y < 0:
                     self.other_bullets.remove(bullet)
+        else:
+            # 單人模式：連續射擊系統
+            current_time = pygame.time.get_ticks()
+            
+            # 檢查是否達到射擊間隔
+            if current_time - self.last_shot_time > self.shot_delay:
+                self.last_shot_time = current_time
+                # 發射新子彈
+                self.bullets.append(Bullet(self.my_cannon.x, self.my_cannon.y))
+            
+            # 移動子彈並移除超出屏幕的
+            for bullet in self.bullets[:]:
+                bullet.move()
+                if bullet.y < 0:
+                    self.bullets.remove(bullet)
 
     def update_balls(self):
         """更新球體狀態"""
@@ -128,34 +165,74 @@ class Game:
             ball.move(self.width, self.height)
 
     def handle_collisions(self):
-        """處理碰撞檢測"""
-        # 處理我的子彈與球的碰撞
-        for ball in self.balls[:]:
-            for bullet in self.my_bullets[:]:
-                if ball.is_hit(bullet):
-                    ball.hp -= 1
-                    self.my_bullets.remove(bullet)
-
-                    if ball.hp <= 0:
-                        self.balls.remove(ball)
-                        if ball.radius > 10 and ball.splits_remaining > 0:
-                            self.balls.extend(ball.split())
-                        self.score += 10
-                    break
-        
-        # 處理對方子彈與球的碰撞（多人模式）
+        """處理碰撞檢測 - 支持獎勵球和普通球"""
         if self.multiplayer:
+            # 多人模式：處理我的子彈與球的碰撞
+            for ball in self.balls[:]:
+                for bullet in self.my_bullets[:]:
+                    if ball.is_hit(bullet):
+                        self.my_bullets.remove(bullet)
+                        
+                        if isinstance(ball, RewardBall):
+                            # 獎勵球被擊中會變大
+                            if ball.radius >= ball.max_radius:
+                                self.balls.remove(ball)
+                                self.bullets_per_wave += 1  # 增加每波子彈數量
+                                self.score += 50  # 額外分數獎勵
+                        else:
+                            # 普通球的處理邏輯
+                            ball.hp -= 1
+                            if ball.hp <= 0:
+                                self.balls.remove(ball)
+                                if ball.radius > 10 and ball.splits_remaining > 0:
+                                    self.balls.extend(ball.split())
+                                self.score += 10
+                        break
+            
+            # 處理對方子彈與球的碰撞
             for ball in self.balls[:]:
                 for bullet in self.other_bullets[:]:
                     if ball.is_hit(bullet):
-                        ball.hp -= 1
                         self.other_bullets.remove(bullet)
+                        
+                        if isinstance(ball, RewardBall):
+                            # 獎勵球被擊中會變大
+                            if ball.radius >= ball.max_radius:
+                                self.balls.remove(ball)
+                                self.other_score += 50  # 額外分數獎勵
+                        else:
+                            # 普通球的處理邏輯
+                            ball.hp -= 1
+                            if ball.hp <= 0:
+                                self.balls.remove(ball)
+                                if ball.radius > 10 and ball.splits_remaining > 0:
+                                    self.balls.extend(ball.split())
+                                self.other_score += 10
+                        break
+        else:
+            # 單人模式：處理碰撞
+            for ball in self.balls[:]:
+                for bullet in self.bullets[:]:
+                    if ball.is_hit(bullet):
+                        self.bullets.remove(bullet)
 
-                        if ball.hp <= 0:
-                            self.balls.remove(ball)
-                            if ball.radius > 10 and ball.splits_remaining > 0:
-                                self.balls.extend(ball.split())
-                            self.other_score += 10
+                        if isinstance(ball, RewardBall):
+                            # 獎勵球沒有HP概念，只有被擊中會變大
+                            if ball.radius >= ball.max_radius:
+                                # 當獎勵球達到最大尺寸時消失，並增加子彈速度
+                                self.balls.remove(ball)
+                                self.bullets_per_second += 3  # 增加射擊速度
+                                if self.shot_delay > 20:  # 防止射擊間隔過短
+                                    self.shot_delay -= 5  # 減少射擊間隔
+                                self.score += 50  # 額外分數獎勵
+                        else:
+                            # 普通球的處理邏輯
+                            ball.hp -= 1
+                            if ball.hp <= 0:
+                                self.balls.remove(ball)
+                                if ball.radius > 10 and ball.splits_remaining > 0:
+                                    self.balls.extend(ball.split())
+                                self.score += 10
                         break
 
     def check_game_over(self):
@@ -181,6 +258,8 @@ class Game:
                     self.running = False
                     return
 
+# Fixed sections of game.py
+
     def update_from_network(self, game_state):
         """從網路更新遊戲狀態（多人模式）"""
         if not self.multiplayer:
@@ -198,9 +277,37 @@ class Game:
                 bullet = Bullet(bullet_data['x'], bullet_data['y'])
                 self.other_bullets.append(bullet)
         
-        # 更新球體狀態（由主機同步）
+        # FIX: 更新球體狀態（客戶端從主機同步）
         if 'balls' in game_state and self.player_id == 1:
-            self.balls = game_state['balls']
+            # 重建球體列表
+            self.balls = []
+            for ball_data in game_state['balls']:
+                if ball_data['type'] == 'reward':
+                    ball = RewardBall(ball_data['x'], ball_data['y'])
+                    ball.radius = ball_data['radius']
+                    # 重新生成縮放後的圖片
+                    ball.current_image = ball._get_scaled_image(ball.radius)
+                    ball.mask = pygame.mask.from_surface(ball.current_image)
+                else:
+                    ball = Ball(
+                        ball_data['x'], 
+                        ball_data['y'], 
+                        ball_data['radius'], 
+                        ball_data['hp'],
+                        ball_data['max_splits']
+                    )
+                    ball.splits_remaining = ball_data['splits_remaining']
+                    # 重新生成對應尺寸的圖片
+                    ball.current_image = pygame.transform.scale(
+                        ball.current_image,
+                        (ball.radius*2, ball.radius*2)
+                    )
+                    ball.mask = pygame.mask.from_surface(ball.current_image)
+                
+                # 同步物理參數
+                ball.dx = ball_data['dx']
+                ball.dy = ball_data['dy']
+                self.balls.append(ball)
         
         # 更新對方分數
         if 'other_score' in game_state:
@@ -208,7 +315,10 @@ class Game:
 
     def get_player_state(self):
         """獲取當前玩家狀態（用於網路傳輸）"""
-        bullet_data = [{'x': bullet.x, 'y': bullet.y} for bullet in self.my_bullets]
+        if self.multiplayer:
+            bullet_data = [{'x': bullet.x, 'y': bullet.y} for bullet in self.my_bullets]
+        else:
+            bullet_data = [{'x': bullet.x, 'y': bullet.y} for bullet in self.bullets]
         
         state = {
             'cannon_x': self.my_cannon.x,
@@ -216,21 +326,47 @@ class Game:
             'score': self.score
         }
         
-        # 如果是主機（玩家0），同步球體狀態
-        if self.player_id == 0:
-            state['balls'] = self.balls
+        # FIX: 如果是主機（玩家0），同步完整的球體狀態
+        if self.multiplayer and self.player_id == 0:
+            balls_data = []
+            for ball in self.balls:
+                ball_info = {
+                    'x': ball.x,
+                    'y': ball.y,
+                    'radius': ball.radius,
+                    'dx': ball.dx,
+                    'dy': ball.dy,
+                    'type': 'reward' if isinstance(ball, RewardBall) else 'normal'
+                }
+                
+                if isinstance(ball, RewardBall):
+                    # 獎勵球的特殊屬性
+                    pass  # 獎勵球只需要基本屬性
+                else:
+                    # 普通球的額外屬性
+                    ball_info.update({
+                        'hp': ball.hp,
+                        'max_splits': ball.max_splits,
+                        'splits_remaining': ball.splits_remaining
+                    })
+                
+                balls_data.append(ball_info)
+            
+            state['balls'] = balls_data
         
         return state
-
     def render(self):
         """渲染遊戲畫面"""
         self.screen.blit(self.background, (0, 0))
         
         # 繪製所有子彈
-        for bullet in self.my_bullets: 
-            bullet.draw(self.screen)
         if self.multiplayer:
+            for bullet in self.my_bullets: 
+                bullet.draw(self.screen)
             for bullet in self.other_bullets:
+                bullet.draw(self.screen)
+        else:
+            for bullet in self.bullets: 
                 bullet.draw(self.screen)
         
         # 繪製球體
@@ -242,15 +378,23 @@ class Game:
         if self.multiplayer and self.other_cannon:
             self.other_cannon.draw(self.screen)
         
-        # 繪製分數
+        # 繪製分數和遊戲信息
         if self.multiplayer:
             my_score_text = self.font.render(f"Your Score: {self.score}", True, (0, 0, 0))
             other_score_text = self.font.render(f"Other Score: {self.other_score}", True, (0, 0, 0))
             self.screen.blit(my_score_text, (10, 10))
             self.screen.blit(other_score_text, (10, 40))
+            
+            # 顯示每波子彈數量
+            bullet_info = self.font.render(f"Bullets per wave: {self.bullets_per_wave}", True, (0, 0, 0))
+            self.screen.blit(bullet_info, (10, 70))
         else:
             score_text = self.font.render(f"Score: {self.score}", True, (0, 0, 0))
             self.screen.blit(score_text, (10, 10))
+            
+            # 顯示射擊速度信息
+            speed_info = self.font.render(f"Fire rate: {self.bullets_per_second}/sec", True, (0, 0, 0))
+            self.screen.blit(speed_info, (10, 40))
 
         pygame.display.update()
 
@@ -277,3 +421,5 @@ class Game:
                 self.update_from_network(game_state)
         
         self.render()
+
+
