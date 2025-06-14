@@ -1,4 +1,4 @@
-# game.py - Merged version with multiplayer and reward balls
+# game.py - Fixed version with level manager support and multiplayer
 import pygame
 import random
 from cannon import Cannon
@@ -7,12 +7,27 @@ from ball import Ball
 from ball import RewardBall
 
 class Game:
-    def __init__(self, screen, multiplayer=False, network_manager=None, player_id=0):
+    def __init__(self, screen, multiplayer=False, network_manager=None, player_id=0, level_manager=None):
         self.screen = screen
         self.width, self.height = screen.get_size()
         self.multiplayer = multiplayer
         self.network_manager = network_manager
         self.player_id = player_id
+        self.level_manager = level_manager  # Add level manager
+        
+        # Load level configuration
+        if self.level_manager:
+            self.level_config = self.level_manager.get_level_config()
+        else:
+            # Default configuration for backward compatibility
+            self.level_config = {
+                'spawn_interval': 300,
+                'ball_hp_min': 20,
+                'ball_hp_max': 30,
+                'ball_speed_min': 1.0,
+                'ball_speed_max': 2.5,
+                'reward_ball_chance': 0.2
+            }
         
         # 初始化遊戲資源
         self.background = pygame.transform.scale(
@@ -73,24 +88,34 @@ class Game:
         self.spawn_timer = 0
 
     def spawn_ball(self):
-        """生成新球體，有小機率生成獎勵球"""
-        if random.random() < 0.2:  # 20%機率生成獎勵球
+        """Generate new balls with level-based difficulty"""
+        # Use level configuration for ball generation
+        if random.random() < self.level_config['reward_ball_chance']:
             ball = RewardBall(
                 x=random.randint(50, self.width-50),
                 y=0
             )
             ball.dx = random.uniform(-4, 4)
-            ball.dy = random.uniform(1, 2.5)
+            ball.dy = random.uniform(
+                self.level_config['ball_speed_min'], 
+                self.level_config['ball_speed_max']
+            )
         else:
             ball = Ball(
                 x=random.randint(50, self.width-50),
                 y=0,
                 radius=random.randint(40, 70),
-                hp=random.randint(20, 30),
-                max_splits=3   # 初始球最多分裂3次
+                hp=random.randint(
+                    self.level_config['ball_hp_min'], 
+                    self.level_config['ball_hp_max']
+                ),
+                max_splits=3
             )
-            ball.dx = random.uniform(-4, 4)  # 水平速度
-            ball.dy = random.uniform(1, 2.5) # 垂直速度
+            ball.dx = random.uniform(-4, 4)
+            ball.dy = random.uniform(
+                self.level_config['ball_speed_min'], 
+                self.level_config['ball_speed_max']
+            )
         
         self.balls.append(ball)
 
@@ -152,11 +177,12 @@ class Game:
                     self.bullets.remove(bullet)
 
     def update_balls(self):
-        """更新球體狀態"""
+        """Update ball status with level-based spawn rate"""
         # 只有玩家0或單人模式才生成球
         if not self.multiplayer or self.player_id == 0:
             self.spawn_timer += 1
-            if self.spawn_timer > 300:
+            # Use level configuration for spawn interval
+            if self.spawn_timer > self.level_config['spawn_interval']:
                 self.spawn_timer = 0
                 self.spawn_ball()
 
@@ -258,8 +284,6 @@ class Game:
                     self.running = False
                     return
 
-# Fixed sections of game.py
-
     def update_from_network(self, game_state):
         """從網路更新遊戲狀態（多人模式）"""
         if not self.multiplayer:
@@ -355,11 +379,12 @@ class Game:
             state['balls'] = balls_data
         
         return state
+
     def render(self):
-        """渲染遊戲畫面"""
+        """Render game screen with level information"""
         self.screen.blit(self.background, (0, 0))
         
-        # 繪製所有子彈
+        # Draw bullets
         if self.multiplayer:
             for bullet in self.my_bullets: 
                 bullet.draw(self.screen)
@@ -369,32 +394,41 @@ class Game:
             for bullet in self.bullets: 
                 bullet.draw(self.screen)
         
-        # 繪製球體
+        # Draw balls
         for ball in self.balls: 
             ball.draw(self.screen)
         
-        # 繪製大砲
+        # Draw cannons
         self.my_cannon.draw(self.screen)
         if self.multiplayer and self.other_cannon:
             self.other_cannon.draw(self.screen)
         
-        # 繪製分數和遊戲信息
+        # Draw score and game info
         if self.multiplayer:
             my_score_text = self.font.render(f"Your Score: {self.score}", True, (0, 0, 0))
             other_score_text = self.font.render(f"Other Score: {self.other_score}", True, (0, 0, 0))
             self.screen.blit(my_score_text, (10, 10))
             self.screen.blit(other_score_text, (10, 40))
             
-            # 顯示每波子彈數量
             bullet_info = self.font.render(f"Bullets per wave: {self.bullets_per_wave}", True, (0, 0, 0))
             self.screen.blit(bullet_info, (10, 70))
         else:
             score_text = self.font.render(f"Score: {self.score}", True, (0, 0, 0))
             self.screen.blit(score_text, (10, 10))
             
-            # 顯示射擊速度信息
-            speed_info = self.font.render(f"Fire rate: {self.bullets_per_second}/sec", True, (0, 0, 0))
-            self.screen.blit(speed_info, (10, 40))
+            # Show level information
+            if self.level_manager:
+                level_text = self.font.render(f"Level: {self.level_manager.current_level} - {self.level_manager.get_level_config()['name']}", True, (0, 0, 0))
+                self.screen.blit(level_text, (10, 40))
+                
+                # Show next unlock info
+                next_unlock = self.level_manager.get_next_unlock_info()
+                if next_unlock:
+                    unlock_text = self.font.render(f"Next: {next_unlock['name']} at {next_unlock['required_score']} pts", True, (0, 0, 0))
+                    self.screen.blit(unlock_text, (10, 70))
+            else:
+                speed_info = self.font.render(f"Fire rate: {self.bullets_per_second}/sec", True, (0, 0, 0))
+                self.screen.blit(speed_info, (10, 40))
 
         pygame.display.update()
 
@@ -421,5 +455,3 @@ class Game:
                 self.update_from_network(game_state)
         
         self.render()
-
-
