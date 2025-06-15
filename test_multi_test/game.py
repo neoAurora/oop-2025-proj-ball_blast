@@ -195,6 +195,60 @@ class Game:
         for ball in self.balls:
             ball.move(self.width, self.height)
 
+        # --------------------------------------------------------------
+    def _animate_card_draw(self, img_path: str, total_ms: int = 1000, hold_ms: int = 3000):
+        """
+        抽卡動畫：
+        1. 0.5 秒翻牌 → 亮面（漸放大）   (total_ms 前半)
+        2. 完整卡圖停留 hold_ms 毫秒
+        3. 自動返回 (不需要淡出，可自行加)
+        """
+        # 讀圖；失敗就直接 return
+        try:
+            card = pygame.image.load(img_path).convert()
+        except Exception as e:
+            print("載入卡圖失敗：", e)
+            return
+
+        sw, sh = self.screen.get_size()
+        iw, ih = card.get_size()
+        scale_fit = min(sw / iw, sh / ih)  # 最後要等比例縮放到螢幕可視範圍
+
+        half = total_ms // 2
+        start_ticks = pygame.time.get_ticks()
+
+        running_anim = True
+        while running_anim:
+            now = pygame.time.get_ticks()
+            elapsed = now - start_ticks
+
+            if elapsed >= total_ms + hold_ms:
+                break  # 動畫結束
+
+            # --------- 更新畫面內容 ----------
+            self.screen.fill((0, 0, 0))
+
+            if elapsed < half:
+                # 前半：從 0.1 → 1 倍 的縮放 (翻牌/放大感)
+                t = elapsed / half
+                scale = 0.1 + 0.9 * t
+            else:
+                # 後半：固定滿版尺寸
+                scale = scale_fit
+
+            surf = pygame.transform.smoothscale(
+                card, (int(iw * scale), int(ih * scale))
+            )
+            rect = surf.get_rect(center=(sw // 2, sh // 2))
+            self.screen.blit(surf, rect)
+            pygame.display.update()
+
+            # 控制 FPS ~60
+            pygame.time.delay(16)
+
+        # 動畫後自動回到 caller 的 render()
+
+
     def handle_collisions(self):
         """處理碰撞檢測 - 支持獎勵球和普通球"""
         if self.multiplayer:
@@ -516,7 +570,7 @@ class Game:
                 rect = img.get_rect(center=(sw//2, sh//2))
                 self.screen.blit(img, rect)
                 pygame.display.update()
-                pygame.time.wait(5000)  
+                self._animate_card_draw(img_path, total_ms=1000, hold_ms=5000)   # 1 秒動畫 + 停 5 秒
             except Exception as e:
                 print("載入卡圖失敗：", e)
 
