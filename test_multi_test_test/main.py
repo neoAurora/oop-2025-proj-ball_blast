@@ -122,14 +122,7 @@ def show_main_menu(game_instance=None):
     
     while True:
         screen.blit(first_page, (0, 0))
-        
-        # Title
-        
-        
-       
-         
-        
-        
+    
         # Modified options to include level selection
         single_text = font_option.render("1 - Single Player", True, (255, 255, 255))
         levels_text = font_option.render("2 - Select Level", True, (255, 255, 255))
