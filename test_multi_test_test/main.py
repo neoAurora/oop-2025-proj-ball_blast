@@ -123,6 +123,13 @@ def show_main_menu(game_instance=None):
     while True:
         screen.blit(first_page, (0, 0))
         
+        # Title
+        #title = font_title.render("Ball Blast", True, (255, 255, 255))
+        #title_rect = title.get_rect(center=(SCREEN_WIDTH//2, 150))
+        #pygame.draw.rect(screen, (0, 0, 0), 
+         #               (title_rect.x-10, title_rect.y-10, 
+          #               title_rect.width+20, title_rect.height+20))
+        
         # Modified options to include level selection
         single_text = font_option.render("1 - Single Player", True, (255, 255, 255))
         levels_text = font_option.render("2 - Select Level", True, (255, 255, 255))
