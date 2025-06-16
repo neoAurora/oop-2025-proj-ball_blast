@@ -126,7 +126,7 @@ def show_main_menu(game_instance=None):
         # Title
         #title = font_title.render("Ball Blast", True, (255, 255, 255))
         #title_rect = title.get_rect(center=(SCREEN_WIDTH//2, 150))
-        #pygame.draw.rect(screen, (0, 0, 0), 
+       
          
         
         
