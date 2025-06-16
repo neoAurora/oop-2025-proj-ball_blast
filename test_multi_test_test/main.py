@@ -128,7 +128,7 @@ def show_main_menu(game_instance=None):
         #title_rect = title.get_rect(center=(SCREEN_WIDTH//2, 150))
         #pygame.draw.rect(screen, (0, 0, 0), 
          #               (title_rect.x-10, title_rect.y-10, 
-          #               title_rect.width+20, title_rect.height+20))
+        
         
         # Modified options to include level selection
         single_text = font_option.render("1 - Single Player", True, (255, 255, 255))
