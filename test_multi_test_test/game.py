@@ -9,7 +9,7 @@ from ball import RewardBall
 from status import StatusPanel
 
 class Game:
-    def __init__(self, screen, multiplayer=False, network_manager=None, player_id=0, level_manager=None):
+    def __init__(self, screen, multiplayer=False, network_manager=None, player_id=0, level_manager=None, coins=100):
         self.screen = screen
         self.width, self.height = screen.get_size()
         self.multiplayer = multiplayer
@@ -21,6 +21,8 @@ class Game:
         self.damage_bonus = 0          # ← 子彈額外傷害（抽卡用）
         self.damage_per_bullet = 1
         self.status_panel = StatusPanel(self)
+        self.coins = coins
+        self.coin_font = pygame.font.SysFont("Arial", 20)  # 金幣顯示字體
         
 
 
@@ -202,12 +204,11 @@ class Game:
         # --------------------------------------------------------------
     def _animate_card_draw(self, img_path: str, total_ms: int = 1000, hold_ms: int = 3000):
         """
-        抽卡動畫：
-        1. 0.5 秒翻牌 → 亮面（漸放大）   (total_ms 前半)
-        2. 完整卡圖停留 hold_ms 毫秒
-        3. 自動返回 (不需要淡出，可自行加)
+        非阻塞版抽卡動畫：
+        1. 0.5 秒翻牌 → 漸放大
+        2. 停留 hold_ms 毫秒
+        3. 自動返回主畫面
         """
-        # 讀圖；失敗就直接 return
         try:
             card = pygame.image.load(img_path).convert()
         except Exception as e:
@@ -216,41 +217,43 @@ class Game:
 
         sw, sh = self.screen.get_size()
         iw, ih = card.get_size()
-        scale_fit = min(sw / iw, sh / ih)  # 最後要等比例縮放到螢幕可視範圍
+        scale_fit = min(sw / iw, sh / ih)
 
         half = total_ms // 2
         start_ticks = pygame.time.get_ticks()
 
+        clock = pygame.time.Clock()
         running_anim = True
+
         while running_anim:
             now = pygame.time.get_ticks()
             elapsed = now - start_ticks
 
-            if elapsed >= total_ms + hold_ms:
-                break  # 動畫結束
+            #  處理事件，防止當機
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    exit()
 
-            # --------- 更新畫面內容 ----------
+            if elapsed >= total_ms + hold_ms:
+                break
+
+            # ---- 更新動畫狀態 ----
             self.screen.fill((0, 0, 0))
 
             if elapsed < half:
-                # 前半：從 0.1 → 1 倍 的縮放 (翻牌/放大感)
                 t = elapsed / half
-                scale = 0.1 + 0.9 * t
+                scale = 0.1 + 0.9 * t  # 從小放大
             else:
-                # 後半：固定滿版尺寸
-                scale = scale_fit
+                scale = scale_fit  # 停留放大後的大小
 
-            surf = pygame.transform.smoothscale(
-                card, (int(iw * scale), int(ih * scale))
-            )
+            surf = pygame.transform.smoothscale(card, (int(iw * scale), int(ih * scale)))
             rect = surf.get_rect(center=(sw // 2, sh // 2))
             self.screen.blit(surf, rect)
+
             pygame.display.update()
+            clock.tick(60)  # 每秒最多 60 幀
 
-            # 控制 FPS ~60
-            pygame.time.delay(16)
-
-        # 動畫後自動回到 caller 的 render()
 
 
     def handle_collisions(self):
@@ -446,7 +449,9 @@ class Game:
     def render(self):
         """Render game screen with level information"""
         self.screen.blit(self.background, (0, 0))
-        
+        coin_text = self.coin_font.render(f"coins: {self.coins}", True, (255, 215, 0))
+        self.screen.blit(coin_text, (self.width - coin_text.get_width() - 20, 10))
+
         # Draw bullets
         if self.multiplayer:
             for bullet in self.my_bullets: 
@@ -514,28 +519,37 @@ class Game:
 
         # --------------------------------------------------------------
     def _show_card_fullscreen(self, img_path: str, duration_ms: int = 3000):
-        """把抽到的卡圖完整顯示在畫面中央，黑底補空，停留 duration_ms 毫秒"""
         try:
-            card = pygame.image.load(img_path).convert()      # 讀圖
+            card = pygame.image.load(img_path).convert()
         except Exception as e:
             print("載入卡圖失敗：", e)
             return
 
-        # 依視窗大小等比例縮放
         sw, sh = self.screen.get_size()
         iw, ih = card.get_size()
         scale = min(sw / iw, sh / ih)
         new_size = (int(iw * scale), int(ih * scale))
         card = pygame.transform.smoothscale(card, new_size)
 
-        # 先填滿黑底，再貼圖
-        self.screen.fill((0, 0, 0))
         rect = card.get_rect(center=(sw // 2, sh // 2))
-        self.screen.blit(card, rect)
-        pygame.display.update()
+        start_time = pygame.time.get_ticks()
 
-        # 停留
-        pygame.time.wait(duration_ms)
+        running = True
+        while running:
+            # 處理事件，防止視窗無回應
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    exit()
+
+            self.screen.fill((0, 0, 0))
+            self.screen.blit(card, rect)
+            pygame.display.flip()
+
+            if pygame.time.get_ticks() - start_time > duration_ms:
+                running = False
+
+            pygame.time.delay(16)  # ~60FPS
 
 
     def run(self):
@@ -549,34 +563,6 @@ class Game:
         self.update_balls()
         self.handle_collisions()
         self.check_game_over()
-        
-            # ---------- 破關後抽卡 ----------
-    # 條件：關卡編號從上一幀的值「跳升」才會抽（代表剛破關）
-        if self.level_manager and self.level_manager.current_level > self.previous_level:
-        # 更新追蹤值
-            self.previous_level = self.level_manager.current_level
-
-        # 抽卡 → 回傳 (卡名, 圖檔路徑, effect dict)
-            card_name, img_path, effect = self.gacha_system.draw_card()
-
-        # 套用數值效果
-            self.apply_card_effect(effect)
-            print(f"🎴 抽到：{card_name}")
-
-            # (可選) 顯示卡圖 2 秒
-            try:
-                img = pygame.image.load(img_path).convert()
-                sw, sh = self.screen.get_size()
-                iw, ih = img.get_size()
-                scale = min(sw/iw, sh/ih)            # 等比例縮放
-                img = pygame.transform.smoothscale(img, (int(iw*scale), int(ih*scale)))
-                self.screen.fill((0, 0, 0))          # 先鋪黑底
-                rect = img.get_rect(center=(sw//2, sh//2))
-                self.screen.blit(img, rect)
-                pygame.display.update()
-                self._animate_card_draw(img_path, total_ms=1000, hold_ms=5000)   # 1 秒動畫 + 停 5 秒
-            except Exception as e:
-                print("載入卡圖失敗：", e)
 
 
         # 網路同步（多人模式）
