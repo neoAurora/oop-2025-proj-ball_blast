@@ -128,11 +128,12 @@ def show_main_menu(game_instance=None):
         levels_text = font_option.render("2 - Select Level", True, (255, 255, 255))
         multi_text = font_option.render("3 - Multiplayer", True, (255, 255, 255))
         leaderboard_text = font_option.render("4 - View Leaderboard", True, (255, 255, 255))
+        gacha_text = font_option.render("5 - gacha", True, (255, 255, 255))
         quit_text = font_option.render("ESC - Quit", True, (255, 255, 255))
-        
+
         # Background frames
-        options = [single_text, levels_text, multi_text, leaderboard_text, quit_text]
-        y_positions = [400, 440, 480, 520, 560]
+        options = [single_text, levels_text, multi_text, leaderboard_text, gacha_text, quit_text]
+        y_positions = [400, 440, 480, 520, 560, 600]
         
         for i, (text, y_pos) in enumerate(zip(options, y_positions)):
             text_rect = text.get_rect(center=(SCREEN_WIDTH//2, y_pos))
@@ -170,9 +171,95 @@ def show_main_menu(game_instance=None):
                     return "multiplayer"
                 elif event.key == pygame.K_4:
                     return "leaderboard"
+                elif event.key == pygame.K_5:  # 新增
+                    return "gacha"
                 elif event.key == pygame.K_ESCAPE:
                     pygame.quit()
                     sys.exit()      
+        
+        clock.tick(60)
+
+# main.py 新增函式
+def show_gacha_menu(game):
+    """顯示抽卡選單"""
+    font_title = pygame.font.SysFont("Arial", 36)
+    font_option = pygame.font.SysFont("Arial", 24)
+    font_small = pygame.font.SysFont("Arial", 18)
+    
+    clock = pygame.time.Clock()
+    result_card = None
+    result_timer = 0
+    
+    while True:
+        screen.fill((20, 20, 40))
+        
+        # 顯示金幣數量
+        coin_text = font_option.render(f"coins: {game.coins}", True, (255, 215, 0))
+        screen.blit(coin_text, (20, 20))
+        
+        # 標題
+        title = font_title.render("banner", True, (255, 255, 255))
+        title_rect = title.get_rect(center=(SCREEN_WIDTH//2, 100))
+        screen.blit(title, title_rect)
+        
+        # 抽卡按鈕
+        draw_button = pygame.Rect(SCREEN_WIDTH//2 - 100, 200, 200, 50)
+        pygame.draw.rect(screen, (70, 70, 120), draw_button)
+        
+        if game.gacha_system.can_draw():
+            draw_text = font_option.render("pull (100coins)", True, (255, 255, 255))
+        else:
+            draw_text = font_option.render("poor guy", True, (150, 150, 150))
+        
+        draw_text_rect = draw_text.get_rect(center=draw_button.center)
+        screen.blit(draw_text, draw_text_rect)
+        
+        # 顯示抽卡結果
+        if result_card:
+            name, img_path, effect, rarity = result_card
+            # 稀有度顏色
+            rarity_color = {
+                "R": (200, 200, 200),
+                "SR": (0, 200, 255),
+                "SSR": (255, 215, 0)
+            }.get(rarity, (255, 255, 255))
+            
+            # 顯示卡片資訊
+            #name_text = font_option.render(f"{name} - {rarity}", True, rarity_color)
+            #screen.blit(name_text, (SCREEN_WIDTH//2 - name_text.get_width()//2, 300))
+            
+            # 顯示效果
+            #effect_text = font_small.render(f"effect: {effect}", True, (200, 200, 200))
+            #screen.blit(effect_text, (SCREEN_WIDTH//2 - effect_text.get_width()//2, 340))
+            
+            # 自動返回計時
+            #result_timer += 1
+            #if result_timer > 60:  # 3秒後自動返回
+                #break
+        
+        # 返回按鈕
+        back_button = pygame.Rect(SCREEN_WIDTH//2 - 100, 400, 200, 50)
+        pygame.draw.rect(screen, (120, 70, 70), back_button)
+        back_text = font_option.render("return", True, (255, 255, 255))
+        back_text_rect = back_text.get_rect(center=back_button.center)
+        screen.blit(back_text, back_text_rect)
+        
+        pygame.display.flip()
+        
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_pos = pygame.mouse.get_pos()
+                if draw_button.collidepoint(mouse_pos) and game.gacha_system.can_draw():
+                    result_card = game.gacha_system.draw_card()
+                    result_timer = 0
+                    if result_card:
+                        name, img_path, effect, rarity = result_card
+                        game._animate_card_draw(img_path)  # ✅ 在這裡只播一次動畫
+                elif back_button.collidepoint(mouse_pos):
+                    return
         
         clock.tick(60)
 
@@ -404,6 +491,7 @@ def show_game_over_screen(score, other_score=None, is_multiplayer=False):
         pygame.time.Clock().tick(60)
 
 def run_single_player(leaderboard, level_manager=None, selected_level=None):
+    global game_instance  # 讓主循環可以訪問
     """Modified single player with level support"""
     # Get player name
     player_name = leaderboard.get_player_name(screen)
@@ -413,10 +501,13 @@ def run_single_player(leaderboard, level_manager=None, selected_level=None):
     # Set level if specified
     if level_manager and selected_level:
         level_manager.set_current_level(selected_level)
-    
+
     # Create game instance with level manager
-    game = Game(screen, multiplayer=False, level_manager=level_manager)
-    global game_instance  # 讓主循環可以訪問
+    game = Game(
+    screen,
+    multiplayer=False,
+    level_manager=level_manager,
+    coins=game_instance.coins if game_instance else 100)  # ✅ 傳入前一局的 coins
     game_instance = game
     # Game main loop
     game_active = True
@@ -440,6 +531,8 @@ def run_single_player(leaderboard, level_manager=None, selected_level=None):
         # Check game over
         if not game.running:
             print("Game Over! Final Score:", game.score)
+            game.coins += 50
+            print("獲得50金幣！")
             
             # Update level progress
             if level_manager:
@@ -450,10 +543,11 @@ def run_single_player(leaderboard, level_manager=None, selected_level=None):
             if restart:
                 break  # Restart game
             else:
-                return
+                return 
         
         pygame.display.flip()
         pygame.time.Clock().tick(60)
+    return game
 
 def run_multiplayer(network_manager):
     """Run multiplayer game"""    
@@ -495,12 +589,15 @@ def run_multiplayer(network_manager):
         pygame.time.Clock().tick(60)
     
     network_manager.disconnect()
+    return game 
 
 def show_leaderboard_only(leaderboard):
     """Show leaderboard only (no game)"""
     leaderboard.show_leaderboard(screen, score=None, player_name=None, view_only=True)
 
 def main():
+    global game_instance  # ✅ 讓其他函式能使用它
+    game_instance = None  # ✅ 避免第一次使用時出現未定義錯誤
     """Modified main function with level system"""
     leaderboard = Leaderboard(SCREEN_WIDTH, SCREEN_HEIGHT)
     level_manager = LevelManager()  # Create level manager
@@ -522,6 +619,10 @@ def main():
             network_manager = show_connection_screen()
             if network_manager:
                 game_instance = run_multiplayer(network_manager)
+        elif choice == "gacha":  # 新增抽卡選項
+            if game_instance is None:
+                game_instance = Game(screen, multiplayer=False, level_manager=level_manager)
+            show_gacha_menu(game_instance)
         elif choice == "leaderboard":
             show_leaderboard_only(leaderboard)
         
