@@ -124,7 +124,7 @@ def show_main_menu(game_instance=None):
         screen.blit(first_page, (0, 0))
         
         # Title
-        #title = font_title.render("Ball Blast", True, (255, 255, 255))
+        
         
        
          
