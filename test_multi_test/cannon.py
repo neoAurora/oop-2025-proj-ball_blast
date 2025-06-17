@@ -17,12 +17,13 @@ class Cannon:
             "damage_bonus": 0,
             "shot_delay": 0,               # 射速變快 = 減少間隔（例如 -100）
             "bullets_per_second": 0,       # > 0 代表啟用雙發
-            "cannon_hp": 3
+            "cannon_hp": 1
         }
 
         self.base_delay = 50  # 射速變超快，50ms一發（每秒約 20 發）
         self.current_delay = self.base_delay + self.attributes["shot_delay"]
         self.last_shot_time = 0
+        self.hp = self.attributes["cannon_hp"] 
         
     def move(self, direction, screen_width):
         if direction == "LEFT" and self.x - self.speed > 0:
