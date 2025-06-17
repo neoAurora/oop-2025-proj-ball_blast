@@ -1,10 +1,15 @@
 # main.py - Fixed version with proper imports and level system
 import pygame
 import sys
+import threading
+import os
+import time
 from game import Game
 from leaderboard import Leaderboard
 from network_manager import NetworkManager
 from level_manager import LevelManager
+from moviepy.editor import VideoFileClip
+
 
 # Initialize pygame
 pygame.init()
@@ -240,8 +245,13 @@ def show_gacha_menu(game):
         
         if game.gacha_system.can_draw():
             draw_text = font_option.render("pull (100coins)", True, (255, 255, 255))
-        else:
-            draw_text = font_option.render("poor guy", True, (150, 150, 150))
+
+        if not game.gacha_system.can_draw():
+            ad_button = pygame.Rect(SCREEN_WIDTH//2 - 100, 300, 200, 50)
+            pygame.draw.rect(screen, (70, 120, 70), ad_button)
+            ad_text = font_option.render("watch ad (free)", True, (255, 255, 255))
+            ad_text_rect = ad_text.get_rect(center=ad_button.center)
+            screen.blit(ad_text, ad_text_rect)
         
         draw_text_rect = draw_text.get_rect(center=draw_button.center)
         screen.blit(draw_text, draw_text_rect)
@@ -264,10 +274,11 @@ def show_gacha_menu(game):
                 mouse_pos = pygame.mouse.get_pos()
                 if draw_button.collidepoint(mouse_pos) and game.gacha_system.can_draw():
                     result_card = game.gacha_system.draw_card()
-                    result_timer = 0
                     if result_card:
                         name, img_path, effect, rarity = result_card
                         game._animate_card_draw(img_path)  # ✅ 在這裡只播一次動畫
+                elif not game.gacha_system.can_draw() and ad_button.collidepoint(mouse_pos):
+                    play_ad_and_draw(game)
                 elif back_button.collidepoint(mouse_pos):
                     return game
         
@@ -581,8 +592,51 @@ def show_leaderboard_only(leaderboard):
     """Show leaderboard only (no game)"""
     leaderboard.show_leaderboard(screen, score=None, player_name=None, view_only=True)
 
+def play_video(filename, screen):
+    """播放影片並帶有聲音，不改變原來的視窗大小"""
+    if not os.path.exists(filename):
+        print(f"Video file not found: {filename}")
+        return
 
+    clip = VideoFileClip(filename)
+    sw, sh = screen.get_size()
+    frame_delay = 1 / 28
 
+    def play_audio():
+        clip.audio.preview()
+
+    audio_thread = threading.Thread(target=play_audio)
+    audio_thread.start()
+
+    for frame in clip.iter_frames(fps=24, dtype='uint8'):
+        start_time = time.time()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+
+        # 影片幀轉 surface 並縮放到遊戲畫面大小
+        surf = pygame.surfarray.make_surface(frame.swapaxes(0, 1))
+        surf = pygame.transform.scale(surf, (sw, sh))
+        screen.blit(surf, (0, 0))
+        pygame.display.update()
+
+        # 控制播放速度
+        elapsed = time.time() - start_time
+        time.sleep(max(0, frame_delay - elapsed))
+        
+
+def play_ad_and_draw(game):
+    """播放廣告影片，影片結束後免費抽一次卡"""
+    screen = game.screen
+    play_video("lemon.mp4", screen)  # 播放影片（請確保檔案存在）
+
+    card = game.gacha_system.draw_card_for_free()
+    if card:
+        name, img_path, effect, rarity = card
+        game._animate_card_draw(img_path)
+    
 def main():
     global game_instance  # ✅ 讓其他函式能使用它
     game_instance = None  # ✅ 避免第一次使用時出現未定義錯
