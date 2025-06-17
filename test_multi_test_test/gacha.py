@@ -6,7 +6,6 @@ from typing import List, Tuple, Dict
 
 # 卡牌設定 - 新增稀有度分級
 CARD_POOL: List[Dict] = [
-    # 普通卡 (70% 機率)
     {
         "name": "TOYZ(R)", 
         "weight": 16,
