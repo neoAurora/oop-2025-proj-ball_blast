@@ -145,8 +145,8 @@ def show_main_menu(game_instance=None):
             ("1 - Single Player", "single"),
             ("2 - Select Level", "levels"),
             ("3 - Multiplayer", "multiplayer"),
-            ("5 - Gacha", "gacha"),
-            ("4 - View Leaderboard", "leaderboard"),
+            ("4 - Gacha", "gacha"),
+            ("5 - View Leaderboard", "leaderboard"),
             ("ESC - Quit", "quit"),
         ]
 
