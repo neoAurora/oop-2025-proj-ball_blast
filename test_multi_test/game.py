@@ -351,13 +351,11 @@ class Game:
                                     self.shot_delay -= 5
                                 self.score += 50
 
-                                # === 新增：50% 機率生成 MiniCannon ===
                                 from mini_cannon import MiniCannon
-                                main_x = self.my_cannon.x
-                                main_y = self.my_cannon.y
-                                offset = 60  # 可調
-                                new_mini = MiniCannon(main_x + offset, main_y)
+                                new_mini = MiniCannon(self.my_cannon)
                                 self.mini_cannons.append(new_mini)
+
+                                
 
                         else:
                             ball.hp -= bullet.damage
