@@ -13,7 +13,7 @@ class Bullet:
 
         self.image = pygame.image.load(image_file).convert()   # 先用 convert()
         self.image.set_colorkey((255, 255, 255))              # ← 把白色設透明
-        self.image = pygame.transform.scale(self.image, (10, 30))
+        self.image = pygame.transform.scale(self.image, (10, 15))
  
         self.rect = self.image.get_rect(center=(x, y))
         self.mask = pygame.mask.from_surface(self.image)  # ✅ 加這行

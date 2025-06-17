@@ -326,23 +326,20 @@ class Game:
                                 self.other_score += 10
                         break
         else:
-            # 單人模式：處理碰撞
+            # === 單人模式：處理子彈擊中球 ===
             for ball in self.balls[:]:
                 for bullet in self.bullets[:]:
                     if ball.is_hit(bullet):
                         self.bullets.remove(bullet)
 
                         if isinstance(ball, RewardBall):
-                            # 獎勵球沒有HP概念，只有被擊中會變大
                             if ball.radius >= ball.max_radius:
-                                # 當獎勵球達到最大尺寸時消失，並增加子彈速度
                                 self.balls.remove(ball)
-                                self.bullets_per_second += 3  # 增加射擊速度
-                                if self.shot_delay > 20:  # 防止射擊間隔過短
-                                    self.shot_delay -= 5  # 減少射擊間隔
-                                self.score += 50  # 額外分數獎勵
+                                self.bullets_per_second += 3
+                                if self.shot_delay > 20:
+                                    self.shot_delay -= 5
+                                self.score += 50
                         else:
-                            # 普通球的處理邏輯
                             ball.hp -= bullet.damage
                             if ball.hp <= 0:
                                 self.balls.remove(ball)
@@ -350,6 +347,23 @@ class Game:
                                     self.balls.extend(ball.split())
                                 self.score += 10
                         break
+
+            # === 砲台被球撞到的處理（改為距離判斷） ===
+            for ball in self.balls[:]:
+                dx = ball.x - self.my_cannon.x
+                dy = ball.y - self.my_cannon.y
+                distance = (dx ** 2 + dy ** 2) ** 0.5
+                if distance < ball.radius + 50:  # 50 是砲台半徑估計值，可微調
+                    self.my_cannon.attributes["cannon_hp"] -= 1
+                    print(f"砲台被撞！剩餘 HP：{self.my_cannon.attributes['cannon_hp']}")
+
+                    if self.my_cannon.attributes["cannon_hp"] <= 0:
+                        self.running = False
+                        print("Game Over! Final Score:", self.score)
+                    else:
+                        self.balls.remove(ball)
+                    break
+
 
     def check_game_over(self):
         """檢查遊戲結束條件"""
