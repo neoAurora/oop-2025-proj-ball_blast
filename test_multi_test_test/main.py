@@ -221,8 +221,6 @@ def show_gacha_menu(game):
             #print("[DEBUG] Applied effect to Game ID:", id(game)) #debug
             # 稀有度顏色
             #rarity_color = {
-                #"R": (200, 200, 200),
-                #"SR": (0, 200, 255),
 
             
         
