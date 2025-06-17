@@ -214,7 +214,7 @@ def show_gacha_menu(game):
         draw_text_rect = draw_text.get_rect(center=draw_button.center)
         screen.blit(draw_text, draw_text_rect)
         
-        
+
         # 返回按鈕
         back_button = pygame.Rect(SCREEN_WIDTH//2 - 100, 400, 200, 50)
         pygame.draw.rect(screen, (120, 70, 70), back_button)
@@ -358,8 +358,11 @@ def show_pause_screen(game):
     """Show pause screen with status panel support"""
     clock = pygame.time.Clock()
     
+    pause_background = screen.copy()  # ✅ 抓當下畫面當背景
+
     while True:
         # 繪製暫停畫面
+        screen.blit(pause_background, (0, 0))  # ✅ 顯示遊戲背景
         overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
         overlay.fill((0, 0, 0, 128))
         screen.blit(overlay, (0, 0))
