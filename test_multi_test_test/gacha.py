@@ -15,7 +15,7 @@ CARD_POOL: List[Dict] = [
     },
     {
         "name": "一步都沒有退(R)",
-        "weight": 16,
+        "weight": 999,
         "img": "image/cards/card1.jpg",
         "effect": {"damage+1, bullet_per_second-5"},
         "rarity": "R"
