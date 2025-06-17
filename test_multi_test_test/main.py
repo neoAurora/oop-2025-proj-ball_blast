@@ -217,9 +217,6 @@ def show_gacha_menu(game):
         # 顯示抽卡結果
         #if result_card:
             #name, img_path, effect, rarity = result_card
-            #game.apply_card_effect(name)
-            #print("[DEBUG] Applied effect to Game ID:", id(game)) #debug
-
             
         
         # 返回按鈕
