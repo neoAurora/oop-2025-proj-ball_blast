@@ -215,9 +215,7 @@ def show_gacha_menu(game):
         screen.blit(draw_text, draw_text_rect)
         
         # 顯示抽卡結果
-        #if result_card:
-            #name, img_path, effect, rarity = result_card
-            
+
         
         # 返回按鈕
         back_button = pygame.Rect(SCREEN_WIDTH//2 - 100, 400, 200, 50)
