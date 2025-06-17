@@ -219,8 +219,6 @@ def show_gacha_menu(game):
             #name, img_path, effect, rarity = result_card
             #game.apply_card_effect(name)
             #print("[DEBUG] Applied effect to Game ID:", id(game)) #debug
-            # 稀有度顏色
-            #rarity_color = {
 
             
         
