@@ -132,15 +132,13 @@ def show_main_menu(game_instance=None):
         quit_text = font_option.render("ESC - Quit", True, (255, 255, 255))
 
         # Background frames
-        """options = [single_text, levels_text, multi_text, leaderboard_text, gacha_text, quit_text]
+        options = [single_text, levels_text, multi_text, leaderboard_text, gacha_text, quit_text]
         y_positions = [400, 440, 480, 520, 560, 600]
         
         for i, (text, y_pos) in enumerate(zip(options, y_positions)):
             text_rect = text.get_rect(center=(SCREEN_WIDTH//2, y_pos))
             pygame.draw.rect(screen, (0, 0, 0), 
                            (text_rect.x-10, text_rect.y-10, 
-                            text_rect.width+20, text_rect.height+20))
-            screen.blit(text, text_rect)"""
         buttons = [
             ("1 - Single Player", "single"),
             ("2 - Select Level", "levels"),
