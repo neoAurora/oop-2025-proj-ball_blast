@@ -226,8 +226,6 @@ def show_gacha_menu(game):
                 #"SSR": (255, 215, 0)
             #}.get(rarity, (255, 255, 255))
             
-            # 顯示卡片資訊
-            
         
         # 返回按鈕
         back_button = pygame.Rect(SCREEN_WIDTH//2 - 100, 400, 200, 50)
