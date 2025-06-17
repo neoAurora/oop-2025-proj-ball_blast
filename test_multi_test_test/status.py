@@ -39,8 +39,6 @@ class StatusPanel:
         # 狀態資訊
         y_offset = panel_y + 70
         line_height = 40
-        
-        # 計算暴擊率和暴擊傷害（假設基礎值）
 
         # 狀態項目
         status_items = [
