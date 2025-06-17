@@ -132,7 +132,7 @@ def show_main_menu(game_instance=None):
         quit_text = font_option.render("ESC - Quit", True, (255, 255, 255))
 
         # Background frames
-        options = [single_text, levels_text, multi_text, leaderboard_text, gacha_text, quit_text]
+        """options = [single_text, levels_text, multi_text, leaderboard_text, gacha_text, quit_text]
         y_positions = [400, 440, 480, 520, 560, 600]
         
         for i, (text, y_pos) in enumerate(zip(options, y_positions)):
@@ -140,7 +140,43 @@ def show_main_menu(game_instance=None):
             pygame.draw.rect(screen, (0, 0, 0), 
                            (text_rect.x-10, text_rect.y-10, 
                             text_rect.width+20, text_rect.height+20))
-            screen.blit(text, text_rect)
+            screen.blit(text, text_rect)"""
+        buttons = [
+            ("1 - Single Player", "single"),
+            ("2 - Select Level", "levels"),
+            ("3 - Multiplayer", "multiplayer"),
+            ("4 - View Leaderboard", "leaderboard"),
+            ("5 - Gacha", "gacha"),
+            ("ESC - Quit", "quit"),
+        ]
+
+        button_rects = []
+        button_font = pygame.font.SysFont("Arial", 32)
+
+        y_start = 400
+        button_w, button_h = 360, 50
+
+        mouse_pos = pygame.mouse.get_pos()
+
+        for i, (label, _) in enumerate(buttons):
+            x = SCREEN_WIDTH // 2 - button_w // 2
+            y = y_start + i * 60
+
+            rect = pygame.Rect(x, y, button_w, button_h)
+            button_rects.append(rect)
+
+            # 懸停特效
+            is_hovered = rect.collidepoint(mouse_pos)
+            color = (70, 120, 200) if is_hovered else (40, 40, 60)
+
+            pygame.draw.rect(screen, color, rect, border_radius=12)
+
+            # 陰影效果（內框）
+            pygame.draw.rect(screen, (100, 100, 150), rect, width=2, border_radius=12)
+
+            text_surface = button_font.render(label, True, (255, 255, 255))
+            text_rect = text_surface.get_rect(center=rect.center)
+            screen.blit(text_surface, text_rect)
         
         # Blinking prompt
         blink_timer += 1
