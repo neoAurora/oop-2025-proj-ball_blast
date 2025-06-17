@@ -29,7 +29,6 @@ CARD_POOL: List[Dict] = [
         "effect": {"crit_damage+25%"},
         "rarity": "R"
     },
-    # 傳說卡 (5% 機率)
     {
         "name": "張家檸檬綠茶(R)",
         "weight": 16,
