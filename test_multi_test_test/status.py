@@ -43,8 +43,6 @@ class StatusPanel:
         # 計算暴擊率和暴擊傷害（假設基礎值）
         #crit_rate = 5 # 基礎5%
         #crit_damage = 150  # 150% 基礎暴擊傷害
-        
-        # 計算子彈排數
 
         # 狀態項目
         status_items = [
