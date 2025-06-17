@@ -60,7 +60,7 @@ CARD_POOL: List[Dict] = [
     },
     {
         "name": "圓神啟動(SR)", 
-        "weight": 3,
+        "weight": 5,
         "img": "image/cards/card7.jpg",
         "effect": {"crit_rate+50%, crit_damage+75%"},
         "rarity": "SR"
