@@ -132,9 +132,6 @@ def show_main_menu(game_instance=None):
         quit_text = font_option.render("ESC - Quit", True, (255, 255, 255))
 
         # Background frames
-        options = [single_text, levels_text, multi_text, leaderboard_text, gacha_text, quit_text]
-        y_positions = [400, 440, 480, 520, 560, 600]
-        
         buttons = [
             ("1 - Single Player", "single"),
             ("2 - Select Level", "levels"),
