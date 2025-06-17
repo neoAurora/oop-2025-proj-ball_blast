@@ -228,10 +228,7 @@ def show_gacha_menu(game):
             
             # 顯示卡片資訊
             #name_text = font_option.render(f"{name} - {rarity}", True, rarity_color)
-            #screen.blit(name_text, (SCREEN_WIDTH//2 - name_text.get_width()//2, 300))
-            
-            # 顯示效果
-            
+            #screen.blit(name_text, (SCREEN_WIDTH//2 - name_text.get_width()//2, 30
             
         
         # 返回按鈕
