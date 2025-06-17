@@ -19,6 +19,7 @@ class Game:
         self.gacha_system = GachaSystem(self)
         self.previous_level = 0      # 用來偵測關卡變動
 
+        self.bullets_per_second = 10  
         self.bullet_rows = 1
         self.row_spacing = 20  # 每排子彈之間的水平間距（單位：像素）
         self.damage_per_bullet = 1
@@ -99,8 +100,7 @@ class Game:
         else:
             # 單人模式使用連續射擊系統
             self.last_shot_time = 0   # 記錄上次射擊時間
-            self.shot_delay = 100     # 射擊間隔(毫秒)，100毫秒 = 每秒10發
-            self.bullets_per_second = 10  # 每秒10發子彈
+            self.shot_delay = 1000 // self.bullets_per_second     # 射擊間隔(毫秒)
         
         self.spawn_timer = 0
 
@@ -543,6 +543,7 @@ class Game:
         if card_name == "一步都沒有退(R)":
             self.damage_per_bullet += 1
             self.bullets_per_second -= 5
+            self.bullets_per_second = max(self.bullets_per_second, 5)
 
         if card_name == "咻碰阿罵(R)":
             self.crit_damage += 25
@@ -552,6 +553,7 @@ class Game:
 
         if card_name == "杰哥的麵包(R)":
             self.crit_rate += 15
+            self.crit_rate = min(self.crit_rate, 100)
 
         if card_name == "114514(SR)":
             self.damage_per_bullet += 3
@@ -562,16 +564,18 @@ class Game:
 
         if card_name == "圓神啟動(SR)":
             self.crit_rate += 50
+            self.crit_rate = min(self.crit_rate, 100)
             self.crit_damage += 75
 
         if card_name == "最強(SSR)":
             self.bullet_rows += 1
+            self.bullet_rows = min(self.bullet_rows, 3)
         
         if card_name == "oop之神(UR)":
             self.crit_rate = 100
-            self.crit_damage = 300
-            self.damage_per_bullet = 5
-            self.bullets_per_second = 30
+            self.crit_damage += 150
+            self.damage_per_bullet += 5
+            self.bullets_per_second += 20
             self.bullet_rows = 3
 
     def _show_card_fullscreen(self, img_path: str, duration_ms: int = 3000):
