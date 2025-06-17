@@ -118,3 +118,23 @@ class GachaSystem:
         
 
         return name, img_path, effect, rarity
+    
+    def draw_card_for_free(self):
+        """免費抽卡（不扣金幣）"""
+        r = random.uniform(0, TOTAL_WEIGHT)
+        acc = 0
+        for card in CARD_POOL:
+            acc += card["weight"]
+            if r <= acc:
+                selected = card
+                break
+        else:
+            selected = CARD_POOL[-1]
+
+        name = selected["name"]
+        img_path = selected["img"]
+        effect = selected["effect"]
+        rarity = selected["rarity"]
+
+        self.game.apply_card_effect(name)
+        return name, img_path, effect, rarity
