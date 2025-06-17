@@ -45,7 +45,7 @@ class StatusPanel:
         #crit_damage = 150  # 150% 基礎暴擊傷害
         
         # 計算子彈排數
-        bullet_rows = 1  # 默認1排
+        #bullet_rows = 1  # 默認1排
         
 
         # 狀態項目
@@ -54,7 +54,7 @@ class StatusPanel:
             ("CRIT Damage", f"{self.game.crit_damage}%"),
             ("Fire Rate", f"{self.game.bullets_per_second}/sec"),
             ("Bullet Damage", f"{self.game.damage_per_bullet}"),
-            ("Bullet Rows", str(bullet_rows))
+            ("Bullet Rows", f"{self.game.bullet_rows}")
         ]
         
         for label, value in status_items:
