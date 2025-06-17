@@ -9,7 +9,7 @@ from ball import RewardBall
 from status import StatusPanel
 
 class Game:
-    def __init__(self, screen, multiplayer=False, network_manager=None, player_id=0, level_manager=None, coins=200):
+    def __init__(self, screen, multiplayer=False, network_manager=None, player_id=0, level_manager=None, coins=500):
         self.screen = screen
         self.width, self.height = screen.get_size()
         self.multiplayer = multiplayer
