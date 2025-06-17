@@ -158,12 +158,11 @@ def show_main_menu(game_instance=None):
 
         mouse_pos = pygame.mouse.get_pos()
 
-        for i, (label, _) in enumerate(buttons):
+        for i, (label, action) in enumerate(buttons):
             x = SCREEN_WIDTH // 2 - button_w // 2
             y = y_start + i * 60
 
             rect = pygame.Rect(x, y, button_w, button_h)
-            button_rects.append(rect)
 
             # 懸停特效
             is_hovered = rect.collidepoint(mouse_pos)
@@ -177,6 +176,8 @@ def show_main_menu(game_instance=None):
             text_surface = button_font.render(label, True, (255, 255, 255))
             text_rect = text_surface.get_rect(center=rect.center)
             screen.blit(text_surface, text_rect)
+             # ✅ 把 rect 和對應動作一起存起來
+            button_rects.append((rect, action))
         
         # Blinking prompt
         blink_timer += 1
@@ -198,7 +199,7 @@ def show_main_menu(game_instance=None):
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-            if event.type == pygame.KEYDOWN:
+            elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_1:
                     return "single"
                 elif event.key == pygame.K_2:
@@ -207,11 +208,15 @@ def show_main_menu(game_instance=None):
                     return "multiplayer"
                 elif event.key == pygame.K_4:
                     return "gacha"
-                elif event.key == pygame.K_5:  # 新增
+                elif event.key == pygame.K_5:  
                     return "leaderboard"
                 elif event.key == pygame.K_ESCAPE:
                     pygame.quit()
                     sys.exit()      
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                for rect, action in button_rects:
+                    if rect.collidepoint(event.pos):
+                        return action
         
         clock.tick(60)
 
