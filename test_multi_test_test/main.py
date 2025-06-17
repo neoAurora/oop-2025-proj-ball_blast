@@ -223,8 +223,7 @@ def show_gacha_menu(game):
             #rarity_color = {
                 #"R": (200, 200, 200),
                 #"SR": (0, 200, 255),
-                #"SSR": (255, 215, 0)
-            #}.get(rarity, (255, 255, 255))
+
             
         
         # 返回按鈕
