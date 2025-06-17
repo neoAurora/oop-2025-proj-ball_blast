@@ -41,7 +41,6 @@ class StatusPanel:
         line_height = 40
         
         # 計算暴擊率和暴擊傷害（假設基礎值）
-        #crit_rate = 5 # 基礎5%
 
         # 狀態項目
         status_items = [
