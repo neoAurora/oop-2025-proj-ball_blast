@@ -9,7 +9,7 @@ from ball import RewardBall
 from status import StatusPanel
 
 class Game:
-    def __init__(self, screen, multiplayer=False, network_manager=None, player_id=0, level_manager=None, coins=100):
+    def __init__(self, screen, multiplayer=False, network_manager=None, player_id=0, level_manager=None, coins=200):
         self.screen = screen
         self.width, self.height = screen.get_size()
         self.multiplayer = multiplayer
@@ -18,11 +18,17 @@ class Game:
         self.level_manager = level_manager  # Add level manager
         self.gacha_system = GachaSystem(self)
         self.previous_level = 0      # 用來偵測關卡變動
-        self.damage_bonus = 0          # ← 子彈額外傷害（抽卡用）
+
+        self.bullet_rows = 1
+        self.row_spacing = 20  # 每排子彈之間的水平間距（單位：像素）
         self.damage_per_bullet = 1
+        self.crit_rate = 5
+        self.crit_damage = 150
+
         self.status_panel = StatusPanel(self)
         self.coins = coins
         self.coin_font = pygame.font.SysFont("Arial", 20)  # 金幣顯示字體
+
         
 
 
@@ -135,6 +141,12 @@ class Game:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    from main import show_pause_screen
+                    result = show_pause_screen(self)
+                    if not result:
+                        self.running = False
 
     def handle_input(self):
         """處理玩家輸入"""
@@ -179,7 +191,12 @@ class Game:
             if current_time - self.last_shot_time > self.shot_delay:
                 self.last_shot_time = current_time
                 # 發射新子彈
-                self.bullets.append(Bullet(self.my_cannon.x, self.my_cannon.y))
+                for i in range(self.bullet_rows):
+                    # 從中心開始左右分布
+                    offset = (i - self.bullet_rows // 2) * self.row_spacing
+                    bullet_x = self.my_cannon.x + offset
+                    bullet_y = self.my_cannon.y
+                    self.bullets.append(Bullet(bullet_x, bullet_y))
             
             # 移動子彈並移除超出屏幕的
             for bullet in self.bullets[:]:
@@ -265,6 +282,8 @@ class Game:
                     if ball.is_hit(bullet):
                         self.my_bullets.remove(bullet)
                         
+                        damage = self.calculate_damage()
+
                         if isinstance(ball, RewardBall):
                             # 獎勵球被擊中會變大
                             if ball.radius >= ball.max_radius:
@@ -273,7 +292,7 @@ class Game:
                                 self.score += 50  # 額外分數獎勵
                         else:
                             # 普通球的處理邏輯
-                            ball.hp -= 1
+                            ball.hp -= damage
                             if ball.hp <= 0:
                                 self.balls.remove(ball)
                                 if ball.radius > 10 and ball.splits_remaining > 0:
@@ -287,6 +306,8 @@ class Game:
                     if ball.is_hit(bullet):
                         self.other_bullets.remove(bullet)
                         
+                        damage = self.calculate_damage()
+
                         if isinstance(ball, RewardBall):
                             # 獎勵球被擊中會變大
                             if ball.radius >= ball.max_radius:
@@ -294,7 +315,7 @@ class Game:
                                 self.other_score += 50  # 額外分數獎勵
                         else:
                             # 普通球的處理邏輯
-                            ball.hp -= 1
+                            ball.hp -= damage
                             if ball.hp <= 0:
                                 self.balls.remove(ball)
                                 if ball.radius > 10 and ball.splits_remaining > 0:
@@ -308,6 +329,8 @@ class Game:
                     if ball.is_hit(bullet):
                         self.bullets.remove(bullet)
 
+                        damage = self.calculate_damage()
+
                         if isinstance(ball, RewardBall):
                             # 獎勵球沒有HP概念，只有被擊中會變大
                             if ball.radius >= ball.max_radius:
@@ -319,13 +342,23 @@ class Game:
                                 self.score += 50  # 額外分數獎勵
                         else:
                             # 普通球的處理邏輯
-                            ball.hp -= 1
+                            ball.hp -= damage
                             if ball.hp <= 0:
                                 self.balls.remove(ball)
                                 if ball.radius > 10 and ball.splits_remaining > 0:
                                     self.balls.extend(ball.split())
                                 self.score += 10
                         break
+
+    def calculate_damage(self):
+        """計算傷害，包含暴擊判定"""
+        base_damage = self.damage_per_bullet
+        
+        # 暴擊判定
+        if random.randint(1, 100) <= self.crit_rate:
+            return int(base_damage * (self.crit_damage / 100))
+        return base_damage
+ 
 
     def check_game_over(self):
         """檢查遊戲結束條件"""
@@ -498,26 +531,49 @@ class Game:
                 speed_info = self.font.render(f"Fire rate: {self.bullets_per_second}/sec", True, (0, 0, 0))
                 self.screen.blit(speed_info, (10, 40))
 
+        self.status_panel.draw(self.screen)
         pygame.display.update()
 
         # ──── 原本若只有簡單 if/else，可整段換成下面 ────
-    def apply_card_effect(self, eff: dict):
+    def apply_card_effect(self, card_name: str):
         """根據 effect dict 套用到屬性"""
-        if 'damage_bonus' in eff:
-            self.damage_bonus += eff['damage_bonus']
+        if card_name == "TOYZ(R)":
+            self.my_cannon.speed += 3
 
-        if 'shot_delay' in eff:
-        # 射擊間隔遞減（越小越快），下限 10ms
-            self.shot_delay = max(10, self.shot_delay + eff['shot_delay'])
+        if card_name == "一步都沒有退(R)":
+            self.damage_per_bullet += 1
+            self.bullets_per_second -= 5
 
-        if 'bullets_per_second' in eff:
-            self.bullets_per_second += eff['bullets_per_second']
+        if card_name == "咻碰阿罵(R)":
+            self.crit_damage += 25
 
-        if 'cannon_hp' in eff:
-        # 大砲耐久（假設 Cannon 有 hp 屬性；若沒有可忽略）
-            self.my_cannon.hp = getattr(self.my_cannon, 'hp', 1) + eff['cannon_hp']
+        if card_name == "張家檸檬綠茶(R)":
+            self.coins *= 0.25
 
-        # --------------------------------------------------------------
+        if card_name == "杰哥的麵包(R)":
+            self.crit_rate += 15
+
+        if card_name == "114514(SR)":
+            self.damage_per_bullet += 3
+
+        if card_name == "MVP(SR)":
+            self.bullets_per_second += 10
+            self.coins -= 500
+
+        if card_name == "圓神啟動(SR)":
+            self.crit_rate += 50
+            self.crit_damage += 75
+
+        if card_name == "最強(SSR)":
+            self.bullet_rows += 1
+        
+        if card_name == "oop之神(UR)":
+            self.crit_rate = 100
+            self.crit_damage = 300
+            self.damage_per_bullet = 5
+            self.bullets_per_second = 30
+            self.bullet_rows = 3
+
     def _show_card_fullscreen(self, img_path: str, duration_ms: int = 3000):
         try:
             card = pygame.image.load(img_path).convert()
@@ -553,26 +609,21 @@ class Game:
 
 
     def run(self):
-        """執行一幀遊戲邏輯"""
-        if not self.running:
-            return
-        
-        self.handle_events()
-        self.handle_input()
-        self.update_bullets()
-        self.update_balls()
-        self.handle_collisions()
-        self.check_game_over()
+        self.running = True
+        while self.running:
+            self.handle_events()
+            self.handle_input()
+            self.update_bullets()
+            self.update_balls()
+            self.handle_collisions()
+            self.check_game_over()
 
+            if self.multiplayer and self.network_manager and self.network_manager.is_connected:
+                # 發送與接收網路資料
+                self.network_manager.send_player_state(self.get_player_state())
+                game_state = self.network_manager.get_game_state()
+                if game_state:
+                    self.update_from_network(game_state)
 
-        # 網路同步（多人模式）
-        if self.multiplayer and self.network_manager and self.network_manager.is_connected:
-            # 發送我的狀態
-            self.network_manager.send_player_state(self.get_player_state())
-            
-            # 接收對方狀態
-            game_state = self.network_manager.get_game_state()
-            if game_state:
-                self.update_from_network(game_state)
-        
-        self.render()
+            self.render()
+            self.clock.tick(60)  # 每秒 60 幀
