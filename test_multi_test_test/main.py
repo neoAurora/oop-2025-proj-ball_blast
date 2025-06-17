@@ -215,14 +215,16 @@ def show_gacha_menu(game):
         screen.blit(draw_text, draw_text_rect)
         
         # 顯示抽卡結果
-        if result_card:
-            name, img_path, effect, rarity = result_card
+        #if result_card:
+            #name, img_path, effect, rarity = result_card
+            #game.apply_card_effect(name)
+            #print("[DEBUG] Applied effect to Game ID:", id(game)) #debug
             # 稀有度顏色
-            rarity_color = {
-                "R": (200, 200, 200),
-                "SR": (0, 200, 255),
-                "SSR": (255, 215, 0)
-            }.get(rarity, (255, 255, 255))
+            #rarity_color = {
+                #"R": (200, 200, 200),
+                #"SR": (0, 200, 255),
+                #"SSR": (255, 215, 0)
+            #}.get(rarity, (255, 255, 255))
             
             # 顯示卡片資訊
             #name_text = font_option.render(f"{name} - {rarity}", True, rarity_color)
@@ -259,7 +261,7 @@ def show_gacha_menu(game):
                         name, img_path, effect, rarity = result_card
                         game._animate_card_draw(img_path)  # ✅ 在這裡只播一次動畫
                 elif back_button.collidepoint(mouse_pos):
-                    return
+                    return game
         
         clock.tick(60)
 
@@ -490,64 +492,37 @@ def show_game_over_screen(score, other_score=None, is_multiplayer=False):
         
         pygame.time.Clock().tick(60)
 
-def run_single_player(leaderboard, level_manager=None, selected_level=None):
-    global game_instance  # 讓主循環可以訪問
-    """Modified single player with level support"""
-    # Get player name
+def run_single_player(leaderboard, level_manager=None, selected_level=None, game=None):
+    """單人模式主流程：使用現有 Game 實例，否則建立新的。"""
+    global game_instance
+
+    # 玩家名稱輸入
     player_name = leaderboard.get_player_name(screen)
     if player_name is None:
-        return
+        return game_instance
 
-    # Set level if specified
+    # 如果有傳入舊的 game（例如從抽卡過來），就沿用它
+    if game is not None:
+        game_instance = game
+    elif game_instance is None:
+        # 否則第一次進入，創建新的 Game 實例
+        game_instance = Game(screen, multiplayer=False, level_manager=level_manager)
+
+    # 設定關卡
     if level_manager and selected_level:
         level_manager.set_current_level(selected_level)
 
-    # Create game instance with level manager
-    game = Game(
-    screen,
-    multiplayer=False,
-    level_manager=level_manager,
-    coins=game_instance.coins if game_instance else 100)  # ✅ 傳入前一局的 coins
-    game_instance = game
-    # Game main loop
-    game_active = True
-    while game_active:
-        # Handle events
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                if not show_pause_screen(game):
-                    game_active = False
-                    break
-        
-        if not game_active:
-            break
-        
-        # Run game frame
-        game.run()
-        
-        # Check game over
-        if not game.running:
-            print("Game Over! Final Score:", game.score)
-            game.coins += 50
-            print("獲得50金幣！")
-            
-            # Update level progress
-            if level_manager:
-                level_manager.update_progress(game.score)
-            
-            # Show leaderboard and get restart choice
-            restart = leaderboard.show_leaderboard(screen, game.score, player_name)
-            if restart:
-                break  # Restart game
-            else:
-                return 
-        
-        pygame.display.flip()
-        pygame.time.Clock().tick(60)
+    game = game_instance  # 確保使用的是正確的 Game
+    game.reset_game_state()
+    game.run()
+
+    # 遊戲結束給金幣獎勵
+    reward = game.score // 10
+    game.coins += reward
+    print(f"Game Over! Final Score: {game.score}\n獲得{reward}金幣！")
+
     return game
+
 
 def run_multiplayer(network_manager):
     """Run multiplayer game"""    
@@ -595,13 +570,14 @@ def show_leaderboard_only(leaderboard):
     """Show leaderboard only (no game)"""
     leaderboard.show_leaderboard(screen, score=None, player_name=None, view_only=True)
 
+
+
 def main():
     global game_instance  # ✅ 讓其他函式能使用它
-    game_instance = None  # ✅ 避免第一次使用時出現未定義錯誤
+    game_instance = None  # ✅ 避免第一次使用時出現未定義錯
     """Modified main function with level system"""
     leaderboard = Leaderboard(SCREEN_WIDTH, SCREEN_HEIGHT)
     level_manager = LevelManager()  # Create level manager
-    game_instance = None   # 用於儲存當前遊戲實例
     
     while True:
         # 修改這裡，傳遞 game_instance 參數
@@ -609,7 +585,7 @@ def main():
         
         if choice == "single":
             # Run single player with level 1
-            game_instance = run_single_player(leaderboard, level_manager, selected_level=1)
+            game_instance = run_single_player(leaderboard, level_manager, selected_level=1, game=game_instance)
         elif choice == "levels":  # New option
             # Show level selection
             selected_level = show_level_selection(screen, level_manager)
@@ -622,7 +598,7 @@ def main():
         elif choice == "gacha":  # 新增抽卡選項
             if game_instance is None:
                 game_instance = Game(screen, multiplayer=False, level_manager=level_manager)
-            show_gacha_menu(game_instance)
+            game_instance = show_gacha_menu(game_instance)
         elif choice == "leaderboard":
             show_leaderboard_only(leaderboard)
         
