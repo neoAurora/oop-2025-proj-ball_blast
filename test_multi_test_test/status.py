@@ -45,8 +45,6 @@ class StatusPanel:
         #crit_damage = 150  # 150% 基礎暴擊傷害
         
         # 計算子彈排數
-        #bullet_rows = 1  # 默認1排
-        
 
         # 狀態項目
         status_items = [
