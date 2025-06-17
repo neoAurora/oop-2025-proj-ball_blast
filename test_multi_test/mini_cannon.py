@@ -43,7 +43,7 @@ class MiniCannon:
         now = pygame.time.get_ticks()
 
         # 1. 跟隨主砲位置
-        self.x = self.main_cannon.x
+        self.x = self.main_cannon.x + self.offset_x
         self.y = self.main_cannon.y + self.offset_y
         self.rect.center = (int(self.x), int(self.y))
 
