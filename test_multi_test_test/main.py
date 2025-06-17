@@ -231,8 +231,6 @@ def show_gacha_menu(game):
             #screen.blit(name_text, (SCREEN_WIDTH//2 - name_text.get_width()//2, 300))
             
             # 顯示效果
-            #effect_text = font_small.render(f"effect: {effect}", True, (200, 200, 200))
-            #screen.blit(effect_text, (SCREEN_WIDTH//2 - effect_text.get_width()//2, 340))
             
             
         
