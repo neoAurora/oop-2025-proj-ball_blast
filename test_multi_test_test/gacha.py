@@ -39,7 +39,7 @@ CARD_POOL: List[Dict] = [
     },
     {
         "name": "杰哥的麵包(R)", 
-        "weight": 5,
+        "weight": 16,
         "img": "image/cards/card4.png",
         "effect": {"crit_rate+15%"},
         "rarity": "R"
