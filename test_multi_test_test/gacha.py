@@ -8,35 +8,77 @@ from typing import List, Tuple, Dict
 CARD_POOL: List[Dict] = [
     # 普通卡 (70% 機率)
     {
-        "name": "藍裕棋の祝福", 
+        "name": "TOYZ(R)", 
         "weight": 7,
-        "img": "image/cards/card1.jpeg",
-        "effect": {"damage_bonus": +1},
-        "rarity": "普通"
+        "img": "image/cards/card0.jpg",
+        "effect": {"cannon_speed+3"},
+        "rarity": "R"
     },
     {
-        "name": "施至遠の意志",
+        "name": "一步都沒有退(R)",
         "weight": 7,
-        "img": "image/cards/card2.jpeg",
-        "effect": {"shot_delay": -10},
-        "rarity": "普通"
+        "img": "image/cards/card1.jpg",
+        "effect": {"damage+1, bullet_per_second-5"},
+        "rarity": "R"
     },
     # 稀有卡 (25% 機率)
     {
-        "name": "王學誠の怒火",
-        "weight": 2.5,
-        "img": "image/cards/card3.jpeg",
-        "effect": {"bullets_per_second": +5},
-        "rarity": "稀有"
+        "name": "咻碰阿罵(R)",
+        "weight": 7,
+        "img": "image/cards/card2.jpg",
+        "effect": {"crit_damage+25%"},
+        "rarity": "R"
     },
     # 傳說卡 (5% 機率)
     {
-        "name": "賴城諭の忍耐",
-        "weight": 0.5,
-        "img": "image/cards/card4.jpeg",
-        "effect": {"cannon_hp": +2, "damage_bonus": +1},
-        "rarity": "傳說"
+        "name": "張家檸檬綠茶(R)",
+        "weight": 7,
+        "img": "image/cards/card3.jpg",
+        "effect": {"coins*0.25"},
+        "rarity": "R"
     },
+    {
+        "name": "杰哥的麵包(R)", 
+        "weight": 7,
+        "img": "image/cards/card4.png",
+        "effect": {"crit_rate+15%"},
+        "rarity": "R"
+    },
+    {
+        "name": "114514(SR)", 
+        "weight": 3,
+        "img": "image/cards/card5.jpg",
+        "effect": {"damage+3"},
+        "rarity": "SR"
+    },
+    {
+        "name": "MVP(SR)", 
+        "weight": 3,
+        "img": "image/cards/card6.jpg",
+        "effect": {"bullet_per_second+10, coins-500"},
+        "rarity": "SR"
+    },
+    {
+        "name": "圓神啟動(SR)", 
+        "weight": 3,
+        "img": "image/cards/card7.jpg",
+        "effect": {"crit_rate+50%, crit_damage+75%"},
+        "rarity": "SR"
+    },
+    {
+        "name": "最強(SSR)", 
+        "weight": 1,
+        "img": "image/cards/card8.jpg",
+        "effect": {"bullet_rows+1"},
+        "rarity": "SSR"
+    },
+    {
+        "name": "oop之神(UR)", 
+        "weight": 999,
+        "img": "image/cards/card9.jpg",
+        "effect": {"???"},
+        "rarity": "UR"
+    }
 ]
 TOTAL_WEIGHT = sum(c["weight"] for c in CARD_POOL)
 
@@ -75,6 +117,7 @@ class GachaSystem:
         rarity = selected["rarity"]
 
         # ⚠️ 不在這裡播動畫，交給主程式處理
-        self.game.apply_card_effect(effect)
+        self.game.apply_card_effect(name)
+        
 
         return name, img_path, effect, rarity
