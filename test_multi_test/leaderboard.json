@@ -72,6 +72,10 @@
     "score": 230
   },
   {
+    "name": "w",
+    "score": 220
+  },
+  {
     "name": "rr",
     "score": 190
   },
@@ -120,15 +124,15 @@
     "score": 40
   },
   {
+    "name": "k",
+    "score": 20
+  },
+  {
     "name": "kokko",
     "score": 10
   },
   {
     "name": "ee",
-    "score": 0
-  },
-  {
-    "name": "k",
     "score": 0
   }
 ]

@@ -352,12 +352,12 @@ class Game:
                                 self.score += 50
 
                                 # === 新增：50% 機率生成 MiniCannon ===
-                                import random
-                                if random.random() < 0.5:
-                                    from mini_cannon import MiniCannon
-                                    new_mini = MiniCannon(ball.x, ball.y)
-                                    self.mini_cannons.append(new_mini)
-                                    print("[生成] MiniCannon 出現！")
+                                from mini_cannon import MiniCannon
+                                main_x = self.my_cannon.x
+                                main_y = self.my_cannon.y
+                                offset = 60  # 可調
+                                new_mini = MiniCannon(main_x + offset, main_y)
+                                self.mini_cannons.append(new_mini)
 
                         else:
                             ball.hp -= bullet.damage
