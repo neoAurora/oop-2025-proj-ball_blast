@@ -12,8 +12,16 @@
     "score": 1040
   },
   {
+    "name": "j",
+    "score": 850
+  },
+  {
     "name": "1",
     "score": 770
+  },
+  {
+    "name": "uu",
+    "score": 760
   },
   {
     "name": "b",
@@ -22,6 +30,10 @@
   {
     "name": "i",
     "score": 540
+  },
+  {
+    "name": "y",
+    "score": 500
   },
   {
     "name": "lock in",
@@ -50,6 +62,10 @@
   {
     "name": "d",
     "score": 310
+  },
+  {
+    "name": "ii",
+    "score": 240
   },
   {
     "name": "r",
@@ -96,6 +112,10 @@
     "score": 70
   },
   {
+    "name": "yy",
+    "score": 60
+  },
+  {
     "name": ",",
     "score": 40
   },
@@ -109,10 +129,6 @@
   },
   {
     "name": "k",
-    "score": 0
-  },
-  {
-    "name": "j",
     "score": 0
   }
 ]

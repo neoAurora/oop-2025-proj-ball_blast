@@ -14,6 +14,7 @@ class Game:
         self.multiplayer = multiplayer
         self.network_manager = network_manager
         self.player_id = player_id
+        self.mini_cannons = []
         self.level_manager = level_manager  # Add level manager
         self.gacha_system = GachaSystem(self)
         self.previous_level = 0      # 用來偵測關卡變動
@@ -185,6 +186,16 @@ class Game:
                 bullet.move()
                 if bullet.y < 0:
                     self.bullets.remove(bullet)
+            # 更新 mini_cannons
+            for mini in self.mini_cannons[:]:
+                alive = mini.update()
+                if not alive:
+                    self.mini_cannons.remove(mini)
+                else:
+                    self.bullets.extend(mini.bullets)
+                    mini.bullets.clear()  # 把子彈交給主清單後清空
+
+
 
     def handle_events(self):
         """鍵盤 + 觸控(左右半螢幕)"""
@@ -325,7 +336,7 @@ class Game:
                                     self.balls.extend(ball.split())
                                 self.other_score += 10
                         break
-        else:
+        else: 
             # === 單人模式：處理子彈擊中球 ===
             for ball in self.balls[:]:
                 for bullet in self.bullets[:]:
@@ -339,6 +350,15 @@ class Game:
                                 if self.shot_delay > 20:
                                     self.shot_delay -= 5
                                 self.score += 50
+
+                                # === 新增：50% 機率生成 MiniCannon ===
+                                import random
+                                if random.random() < 0.5:
+                                    from mini_cannon import MiniCannon
+                                    new_mini = MiniCannon(ball.x, ball.y)
+                                    self.mini_cannons.append(new_mini)
+                                    print("[生成] MiniCannon 出現！")
+
                         else:
                             ball.hp -= bullet.damage
                             if ball.hp <= 0:
@@ -348,12 +368,19 @@ class Game:
                                 self.score += 10
                         break
 
-            # === 砲台被球撞到的處理（改為距離判斷） ===
+            # === 球撞到 MiniCannon 的處理 ===
+            for ball in self.balls[:]:
+                for mini in self.mini_cannons[:]:
+                    if pygame.sprite.collide_mask(ball, mini):
+                        self.mini_cannons.remove(mini)
+                        print("[撞擊] MiniCannon 被球撞壞了！")
+
+            # === 球撞到主砲台的處理（距離判斷） ===
             for ball in self.balls[:]:
                 dx = ball.x - self.my_cannon.x
                 dy = ball.y - self.my_cannon.y
                 distance = (dx ** 2 + dy ** 2) ** 0.5
-                if distance < ball.radius + 50:  # 50 是砲台半徑估計值，可微調
+                if distance < ball.radius + 50:  # 50 是主砲台半徑估計值
                     self.my_cannon.attributes["cannon_hp"] -= 1
                     print(f"砲台被撞！剩餘 HP：{self.my_cannon.attributes['cannon_hp']}")
 
@@ -549,6 +576,10 @@ class Game:
         for i, line in enumerate(status_lines):
             info = self.font.render(line, True, (0, 0, 0))
             self.screen.blit(info, (self.width - 250, 10 + i * 30))
+
+        for mini in self.mini_cannons:
+            mini.draw(self.screen)
+
 
 
         pygame.display.update()
