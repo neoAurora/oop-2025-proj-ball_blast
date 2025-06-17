@@ -137,8 +137,6 @@ def show_main_menu(game_instance=None):
         
         for i, (text, y_pos) in enumerate(zip(options, y_positions)):
             text_rect = text.get_rect(center=(SCREEN_WIDTH//2, y_pos))
-            pygame.draw.rect(screen, (0, 0, 0), 
-                           (text_rect.x-10, text_rect.y-10, 
         buttons = [
             ("1 - Single Player", "single"),
             ("2 - Select Level", "levels"),
