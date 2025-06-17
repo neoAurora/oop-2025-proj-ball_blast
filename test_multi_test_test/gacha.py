@@ -24,7 +24,7 @@ CARD_POOL: List[Dict] = [
     # 稀有卡 (25% 機率)
     {
         "name": "咻碰阿罵(R)",
-        "weight": 7,
+        "weight": 16,
         "img": "image/cards/card2.jpg",
         "effect": {"crit_damage+25%"},
         "rarity": "R"
