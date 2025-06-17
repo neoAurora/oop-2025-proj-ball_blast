@@ -1,23 +1,28 @@
-# bullet.py
 import pygame
-import os
 
 class Bullet:
-    def __init__(self, x, y):
+    def __init__(self, x, y, damage=1, double=False):
         self.x = x
         self.y = y
         self.speed = 10
+        self.damage = damage
+        self.double = double
 
-        img_path = os.path.join("bullet.jpg")  
-        self.image = pygame.image.load(img_path).convert()
-        self.image.set_colorkey((255, 255, 255))   #去除白色背景
-        self.image = pygame.transform.scale(self.image, (20, 20))
-        self.rect = self.image.get_rect(center=(self.x, self.y))
-        self.mask = pygame.mask.from_surface(self.image)
+       # bullet.py  ── __init__()
+        image_file = "dbullet.jpg" if self.double else "bullet.jpg"
+
+        self.image = pygame.image.load(image_file).convert()   # 先用 convert()
+        self.image.set_colorkey((255, 255, 255))              # ← 把白色設透明
+        self.image = pygame.transform.scale(self.image, (10, 15))
+ 
+        self.rect = self.image.get_rect(center=(x, y))
+        self.mask = pygame.mask.from_surface(self.image)  # ✅ 加這行
+
 
     def move(self):
         self.y -= self.speed
-        self.rect.center = (self.x, self.y)
+        self.rect.centery = self.y
 
     def draw(self, win):
         win.blit(self.image, self.rect)
+

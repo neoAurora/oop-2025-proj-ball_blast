@@ -14,10 +14,13 @@ class Game:
         self.multiplayer = multiplayer
         self.network_manager = network_manager
         self.player_id = player_id
+        self.mini_cannons = []
         self.level_manager = level_manager  # Add level manager
         self.gacha_system = GachaSystem(self)
         self.previous_level = 0      # 用來偵測關卡變動
         self.damage_bonus = 0          # ← 子彈額外傷害（抽卡用）
+        self.touch_left  = False   #  ← 觸控左半邊 = 往左
+        self.touch_right = False   #  ← 觸控右半邊 = 往右
 
 
         # Load level configuration
@@ -89,8 +92,12 @@ class Game:
             self.last_shot_time = 0   # 記錄上次射擊時間
             self.shot_delay = 50      # 射擊間隔(毫秒)
             self.bullets_per_second = 20  # 每秒20發子彈
-        
-        self.spawn_timer = 0
+            self.spawn_timer = 0    # 將射速強制設定為超快
+            self.my_cannon.current_delay = 50
+            self.my_cannon.hp = self.my_cannon.attributes["cannon_hp"]
+
+
+
 
     def spawn_ball(self):
         """Generate new balls with level-based difficulty"""
@@ -124,19 +131,20 @@ class Game:
         
         self.balls.append(ball)
 
-    def handle_events(self):
-        """處理輸入事件"""
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                self.running = False
 
+        # ------------------------------------------------------------------
     def handle_input(self):
-        """處理玩家輸入"""
+        """同時判斷鍵盤與觸控旗標"""
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_LEFT]:
+
+        move_left  = keys[pygame.K_LEFT]  or self.touch_left
+        move_right = keys[pygame.K_RIGHT] or self.touch_right
+
+        if move_left:
             self.my_cannon.move("LEFT", self.width)
-        if keys[pygame.K_RIGHT]:
+        if move_right:
             self.my_cannon.move("RIGHT", self.width)
+
 
     def update_bullets(self):
         """更新子彈狀態 - 支持兩種射擊模式"""
@@ -166,20 +174,54 @@ class Game:
                 if bullet.y < 0:
                     self.other_bullets.remove(bullet)
         else:
-            # 單人模式：連續射擊系統
+    # 單人模式：連續射擊系統
             current_time = pygame.time.get_ticks()
-            
-            # 檢查是否達到射擊間隔
-            if current_time - self.last_shot_time > self.shot_delay:
-                self.last_shot_time = current_time
-                # 發射新子彈
-                self.bullets.append(Bullet(self.my_cannon.x, self.my_cannon.y))
+
+    # 改用 cannon 自己的射擊邏輯（會考慮射速、雙發、傷害加成）
+            self.my_cannon.shoot(self.bullets, current_time)
+
             
             # 移動子彈並移除超出屏幕的
             for bullet in self.bullets[:]:
                 bullet.move()
                 if bullet.y < 0:
                     self.bullets.remove(bullet)
+            # 更新 mini_cannons
+            for mini in self.mini_cannons[:]:
+                alive = mini.update()
+                if not alive:
+                    self.mini_cannons.remove(mini)
+                else:
+                    self.bullets.extend(mini.bullets)
+                    mini.bullets.clear()  # 把子彈交給主清單後清空
+
+
+
+    def handle_events(self):
+        """鍵盤 + 觸控(左右半螢幕)"""
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.running = False
+
+        # ------- 觸控／點擊 -------
+        #   SDL2 在 Android 會把手指事件同時映射成
+        #   ① pygame.FINGERDOWN / FINGERUP （座標 0~1 浮點）
+        #   ② pygame.MOUSEBUTTONDOWN / UP    （座標 pixel）
+        #
+        #   下面兩種事件都攔；取 x 座標決定左右旗標。
+            if event.type in (pygame.MOUSEBUTTONDOWN, pygame.FINGERDOWN):
+                x = event.pos[0] if event.type == pygame.MOUSEBUTTONDOWN else event.x * self.width
+                if x < self.width / 2:
+                    self.touch_left = True
+                else:
+                    self.touch_right = True
+
+            if event.type in (pygame.MOUSEBUTTONUP, pygame.FINGERUP):
+            # 放開就清旗標（不管放開哪邊）
+                self.touch_left = False
+                self.touch_right = False
+
+
 
     def update_balls(self):
         """Update ball status with level-based spawn rate"""
@@ -294,31 +336,61 @@ class Game:
                                     self.balls.extend(ball.split())
                                 self.other_score += 10
                         break
-        else:
-            # 單人模式：處理碰撞
+        else: 
+            # === 單人模式：處理子彈擊中球 ===
             for ball in self.balls[:]:
                 for bullet in self.bullets[:]:
                     if ball.is_hit(bullet):
                         self.bullets.remove(bullet)
 
                         if isinstance(ball, RewardBall):
-                            # 獎勵球沒有HP概念，只有被擊中會變大
                             if ball.radius >= ball.max_radius:
-                                # 當獎勵球達到最大尺寸時消失，並增加子彈速度
                                 self.balls.remove(ball)
-                                self.bullets_per_second += 3  # 增加射擊速度
-                                if self.shot_delay > 20:  # 防止射擊間隔過短
-                                    self.shot_delay -= 5  # 減少射擊間隔
-                                self.score += 50  # 額外分數獎勵
+                                self.bullets_per_second += 3
+                                if self.shot_delay > 20:
+                                    self.shot_delay -= 5
+                                self.score += 50
+
+                                # === 新增：50% 機率生成 MiniCannon ===
+                                import random
+                                if random.random() < 0.5:
+                                    from mini_cannon import MiniCannon
+                                    new_mini = MiniCannon(ball.x, ball.y)
+                                    self.mini_cannons.append(new_mini)
+                                    print("[生成] MiniCannon 出現！")
+
                         else:
-                            # 普通球的處理邏輯
-                            ball.hp -= 1
+                            ball.hp -= bullet.damage
                             if ball.hp <= 0:
                                 self.balls.remove(ball)
                                 if ball.radius > 10 and ball.splits_remaining > 0:
                                     self.balls.extend(ball.split())
                                 self.score += 10
                         break
+
+            # === 球撞到 MiniCannon 的處理 ===
+            for ball in self.balls[:]:
+                for mini in self.mini_cannons[:]:
+                    if pygame.sprite.collide_mask(ball, mini):
+                        self.mini_cannons.remove(mini)
+                        print("[撞擊] MiniCannon 被球撞壞了！")
+
+            # === 球撞到主砲台的處理（距離判斷） ===
+            for ball in self.balls[:]:
+                dx = ball.x - self.my_cannon.x
+                dy = ball.y - self.my_cannon.y
+                distance = (dx ** 2 + dy ** 2) ** 0.5
+                if distance < ball.radius + 50:  # 50 是主砲台半徑估計值
+                    self.my_cannon.attributes["cannon_hp"] -= 1
+                    print(f"砲台被撞！剩餘 HP：{self.my_cannon.attributes['cannon_hp']}")
+
+                    if self.my_cannon.attributes["cannon_hp"] <= 0:
+                        self.running = False
+                        print("Game Over! Final Score:", self.score)
+                    else:
+                        self.balls.remove(ball)
+                    break
+
 
     def check_game_over(self):
         """檢查遊戲結束條件"""
@@ -329,8 +401,11 @@ class Game:
             offset_y = ball_rect.top - self.my_cannon.rect.top
 
             if self.my_cannon.mask.overlap(ball.mask, (offset_x, offset_y)):
-                self.running = False
-                return
+                self.my_cannon.hp -= 1
+                print(f"砲台被撞！剩餘 HP：{self.my_cannon.hp}")
+                if self.my_cannon.hp <= 0:
+                    self.running = False
+
         
         # 檢查對方大砲（多人模式）
         if self.multiplayer and self.other_cannon:
@@ -489,26 +564,51 @@ class Game:
                 speed_info = self.font.render(f"Fire rate: {self.bullets_per_second}/sec", True, (0, 0, 0))
                 self.screen.blit(speed_info, (10, 40))
 
+        # 顯示強化狀態
+        status_lines = [
+            f"HP: {self.my_cannon.attributes['cannon_hp']}",
+            f"Fire Rate Boost: {-self.my_cannon.attributes['shot_delay']} ms",
+            f"Multi-Shot: {'Yes' if self.my_cannon.attributes['bullets_per_second'] > 0 else 'No'}",
+            f"Bonus Damage: {'Yes' if self.my_cannon.attributes['damage_bonus'] > 0 else 'No'}"
+        ]
+
+
+        for i, line in enumerate(status_lines):
+            info = self.font.render(line, True, (0, 0, 0))
+            self.screen.blit(info, (self.width - 250, 10 + i * 30))
+
+        for mini in self.mini_cannons:
+            mini.draw(self.screen)
+
+
+
         pygame.display.update()
 
-        # ──── 原本若只有簡單 if/else，可整段換成下面 ────
+        # ──── 原本若只有簡單 if/else，可整段換成下面 ───
     def apply_card_effect(self, eff: dict):
-        """根據 effect dict 套用到屬性"""
+        """根據 effect dict 套用到屬性（同步到砲台）"""
+
+        # ① 依照字典內容修改 my_cannon.attributes ----------
         if 'damage_bonus' in eff:
-            self.damage_bonus += eff['damage_bonus']
+            self.my_cannon.attributes['damage_bonus'] += eff['damage_bonus']
 
         if 'shot_delay' in eff:
-        # 射擊間隔遞減（越小越快），下限 10ms
-            self.shot_delay = max(10, self.shot_delay + eff['shot_delay'])
+            self.my_cannon.attributes['shot_delay'] += eff['shot_delay']
+            # 更新目前射擊間隔（最小 50 ms）
+            self.my_cannon.current_delay = max(
+                50,
+                self.my_cannon.base_delay + self.my_cannon.attributes['shot_delay']
+            )
 
         if 'bullets_per_second' in eff:
-            self.bullets_per_second += eff['bullets_per_second']
+            self.my_cannon.attributes['bullets_per_second'] += eff['bullets_per_second']
 
         if 'cannon_hp' in eff:
-        # 大砲耐久（假設 Cannon 有 hp 屬性；若沒有可忽略）
-            self.my_cannon.hp = getattr(self.my_cannon, 'hp', 1) + eff['cannon_hp']
+            self.my_cannon.attributes['cannon_hp'] += eff['cannon_hp']
 
-        # --------------------------------------------------------------
+        # ② 讓砲台自己再跑一次同名函式，保持兩邊邏輯一致 ----★
+        self.my_cannon.apply_card_effect(eff)
+
     def _show_card_fullscreen(self, img_path: str, duration_ms: int = 3000):
         """把抽到的卡圖完整顯示在畫面中央，黑底補空，停留 duration_ms 毫秒"""
         try:
@@ -533,6 +633,8 @@ class Game:
         # 停留
         pygame.time.wait(duration_ms)
 
+        self.my_cannon.current_delay = max(50, self.my_cannon.base_delay + self.my_cannon.attributes["shot_delay"])
+
 
     def run(self):
         """執行一幀遊戲邏輯"""
@@ -546,31 +648,20 @@ class Game:
         self.handle_collisions()
         self.check_game_over()
         
-            # ---------- 破關後抽卡 ----------
-    # 條件：關卡編號從上一幀的值「跳升」才會抽（代表剛破關）
+
+    # ---------- 破關後抽卡 ----------
         if self.level_manager and self.level_manager.current_level > self.previous_level:
-        # 更新追蹤值
             self.previous_level = self.level_manager.current_level
 
-        # 抽卡 → 回傳 (卡名, 圖檔路徑, effect dict)
-            card_name, img_path, effect = self.gacha_system.draw_card()
+            # 抽卡 → 回傳 (卡名, 圖檔路徑, effect dict)
+            _, img_path, effect = self.gacha_system.draw_card()  # 把 card_name 拿掉，不顯示英文
 
-        # 套用數值效果
+            # 套用效果
             self.apply_card_effect(effect)
-            print(f"🎴 抽到：{card_name}")
 
-            # (可選) 顯示卡圖 2 秒
+            # 顯示卡片圖片動畫（完全不顯示任何文字）
             try:
-                img = pygame.image.load(img_path).convert()
-                sw, sh = self.screen.get_size()
-                iw, ih = img.get_size()
-                scale = min(sw/iw, sh/ih)            # 等比例縮放
-                img = pygame.transform.smoothscale(img, (int(iw*scale), int(ih*scale)))
-                self.screen.fill((0, 0, 0))          # 先鋪黑底
-                rect = img.get_rect(center=(sw//2, sh//2))
-                self.screen.blit(img, rect)
-                pygame.display.update()
-                self._animate_card_draw(img_path, total_ms=1000, hold_ms=5000)   # 1 秒動畫 + 停 5 秒
+                self._animate_card_draw(img_path, total_ms=1000, hold_ms=3000)
             except Exception as e:
                 print("載入卡圖失敗：", e)
 
