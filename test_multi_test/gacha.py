@@ -16,30 +16,31 @@ from typing import List, Tuple, Dict
 # effect: 描述要改動的屬性與數值，讓上層 Game 有彈性自行處理
 CARD_POOL: List[Dict] = [
     {
-        "name": "藍裕棋の祝福",          # 子彈傷害↑
+        "name": "藍裕棋の祝福",          # 30% 機率子彈傷害 2
         "weight": 1,
-        "img": "image/cards/card1.jpeg",   # ← 副檔名改成 .jpeg
-        "effect": {"damage_bonus": +1}
+        "img": "image/cards/card1.jpeg",
+        "effect": {"damage_bonus": 1}  # ✅ 只作為標記，不累加數值
     },
     {
-        "name": "施至遠の意志",          # 射速提升
+        "name": "施至遠の意志",          # 射速提升 40%
         "weight": 1,
-        "img": "image/cards/card2.jpeg",   # ← 副檔名改成 .jpeg
-        "effect": {"shot_delay": -10}   # 每發間隔 -10ms
+        "img": "image/cards/card2.jpeg",
+        "effect": {"shot_delay": -80}  # ✅ 表示已獲得 40% 提升
     },
     {
-        "name": "王學誠の怒火",          # 連射次數↑
+        "name": "王學誠の怒火",          # 雙發並排
         "weight": 1,
-        "img": "image/cards/card3.jpeg",   # ← 副檔名改成 .jpeg
+        "img": "image/cards/card3.jpeg",
         "effect": {"bullets_per_second": +5}
     },
     {
-        "name": "賴城諭の忍耐",          # 砲台耐久↑
+        "name": "賴城諭の忍耐",          # 耐久提升
         "weight": 1,
-        "img": "image/cards/card4.jpeg",   # ← 副檔名改成 .jpeg
-        "effect": {"cannon_hp": +1}
+        "img": "image/cards/card4.jpeg",
+        "effect": {"cannon_hp": 1}
     },
 ]
+
 TOTAL_WEIGHT = sum(c["weight"] for c in CARD_POOL)
 
 # ==========================================================================

@@ -16,8 +16,32 @@
     "score": 770
   },
   {
+    "name": "b",
+    "score": 730
+  },
+  {
+    "name": "i",
+    "score": 540
+  },
+  {
     "name": "lock in",
     "score": 480
+  },
+  {
+    "name": "t",
+    "score": 470
+  },
+  {
+    "name": "dd",
+    "score": 440
+  },
+  {
+    "name": "u",
+    "score": 370
+  },
+  {
+    "name": "ff",
+    "score": 320
   },
   {
     "name": "eeee",
@@ -25,11 +49,27 @@
   },
   {
     "name": "d",
-    "score": 260
+    "score": 310
+  },
+  {
+    "name": "r",
+    "score": 230
+  },
+  {
+    "name": "rr",
+    "score": 190
+  },
+  {
+    "name": "o",
+    "score": 190
   },
   {
     "name": "roro",
     "score": 170
+  },
+  {
+    "name": "jj",
+    "score": 150
   },
   {
     "name": "hh",
@@ -40,11 +80,31 @@
     "score": 100
   },
   {
-    "name": "rr",
+    "name": "p",
+    "score": 100
+  },
+  {
+    "name": "g",
     "score": 90
+  },
+  {
+    "name": "j\\",
+    "score": 90
+  },
+  {
+    "name": "s",
+    "score": 70
   },
   {
     "name": "kokko",
     "score": 10
+  },
+  {
+    "name": "ee",
+    "score": 0
+  },
+  {
+    "name": "k",
+    "score": 0
   }
 ]
