@@ -145,8 +145,8 @@ def show_main_menu(game_instance=None):
             ("1 - Single Player", "single"),
             ("2 - Select Level", "levels"),
             ("3 - Multiplayer", "multiplayer"),
-            ("4 - View Leaderboard", "leaderboard"),
             ("5 - Gacha", "gacha"),
+            ("4 - View Leaderboard", "leaderboard"),
             ("ESC - Quit", "quit"),
         ]
 
@@ -206,9 +206,9 @@ def show_main_menu(game_instance=None):
                 elif event.key == pygame.K_3:
                     return "multiplayer"
                 elif event.key == pygame.K_4:
-                    return "leaderboard"
-                elif event.key == pygame.K_5:  # 新增
                     return "gacha"
+                elif event.key == pygame.K_5:  # 新增
+                    return "leaderboard"
                 elif event.key == pygame.K_ESCAPE:
                     pygame.quit()
                     sys.exit()      
