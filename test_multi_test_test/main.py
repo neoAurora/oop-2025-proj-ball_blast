@@ -236,8 +236,7 @@ def show_gacha_menu(game):
             
             # 自動返回計時
             #result_timer += 1
-            #if result_timer > 60:  # 3秒後自動返回
-                #break
+            
         
         # 返回按鈕
         back_button = pygame.Rect(SCREEN_WIDTH//2 - 100, 400, 200, 50)
