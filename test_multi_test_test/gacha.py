@@ -39,21 +39,21 @@ CARD_POOL: List[Dict] = [
     },
     {
         "name": "杰哥的麵包(R)", 
-        "weight": 7,
+        "weight": 5,
         "img": "image/cards/card4.png",
         "effect": {"crit_rate+15%"},
         "rarity": "R"
     },
     {
         "name": "114514(SR)", 
-        "weight": 3,
+        "weight": 5,
         "img": "image/cards/card5.jpg",
         "effect": {"damage+3"},
         "rarity": "SR"
     },
     {
         "name": "MVP(SR)", 
-        "weight": 3,
+        "weight": 5,
         "img": "image/cards/card6.jpg",
         "effect": {"bullet_per_second+10, coins-500"},
         "rarity": "SR"
@@ -67,14 +67,14 @@ CARD_POOL: List[Dict] = [
     },
     {
         "name": "最強(SSR)", 
-        "weight": 1,
+        "weight": 2,
         "img": "image/cards/card8.jpg",
         "effect": {"bullet_rows+1"},
         "rarity": "SSR"
     },
     {
         "name": "oop之神(UR)", 
-        "weight": 999,
+        "weight": 1,
         "img": "image/cards/card9.jpg",
         "effect": {"???"},
         "rarity": "UR"
