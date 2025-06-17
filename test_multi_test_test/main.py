@@ -135,8 +135,6 @@ def show_main_menu(game_instance=None):
         options = [single_text, levels_text, multi_text, leaderboard_text, gacha_text, quit_text]
         y_positions = [400, 440, 480, 520, 560, 600]
         
-        for i, (text, y_pos) in enumerate(zip(options, y_positions)):
-            text_rect = text.get_rect(center=(SCREEN_WIDTH//2, y_pos))
         buttons = [
             ("1 - Single Player", "single"),
             ("2 - Select Level", "levels"),
