@@ -13,6 +13,7 @@ class StatusPanel:
         self.visible = not self.visible
         
     def draw(self, screen):
+        
         """繪製狀態面板"""
         if not self.visible:
             return
@@ -40,16 +41,17 @@ class StatusPanel:
         line_height = 40
         
         # 計算暴擊率和暴擊傷害（假設基礎值）
-        crit_rate = 5 # 基礎5%
-        crit_damage = 150  # 150% 基礎暴擊傷害
+        #crit_rate = 5 # 基礎5%
+        #crit_damage = 150  # 150% 基礎暴擊傷害
         
         # 計算子彈排數
         bullet_rows = 1  # 默認1排
         
+
         # 狀態項目
         status_items = [
-            ("CRIT Rate", f"{crit_rate}%"),
-            ("CRIT Damage", f"{crit_damage}%"),
+            ("CRIT Rate", f"{self.game.crit_rate}%"),
+            ("CRIT Damage", f"{self.game.crit_damage}%"),
             ("Fire Rate", f"{self.game.bullets_per_second}/sec"),
             ("Bullet Damage", f"{self.game.damage_per_bullet}"),
             ("Bullet Rows", str(bullet_rows))
