@@ -32,7 +32,7 @@ CARD_POOL: List[Dict] = [
     # 傳說卡 (5% 機率)
     {
         "name": "張家檸檬綠茶(R)",
-        "weight": 7,
+        "weight": 16,
         "img": "image/cards/card3.jpg",
         "effect": {"coins*0.25"},
         "rarity": "R"
