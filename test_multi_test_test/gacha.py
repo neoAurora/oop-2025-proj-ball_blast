@@ -9,7 +9,7 @@ CARD_POOL: List[Dict] = [
     # 普通卡 (70% 機率)
     {
         "name": "TOYZ(R)", 
-        "weight": 7,
+        "weight": 16,
         "img": "image/cards/card0.jpg",
         "effect": {"cannon_speed+3"},
         "rarity": "R"
