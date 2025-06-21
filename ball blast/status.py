@@ -4,7 +4,7 @@ import pygame
 class StatusPanel:
     def __init__(self, game):
         self.game = game
-        self.font = pygame.font.SysFont("Arial", 24)
+        self.font = pygame.font.SysFont("Arial", 23)
         self.title_font = pygame.font.SysFont("Arial", 36)
         self.visible = False
         
