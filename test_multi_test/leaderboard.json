@@ -60,6 +60,14 @@
     "score": 440
   },
   {
+    "name": "r",
+    "score": 400
+  },
+  {
+    "name": "rr",
+    "score": 390
+  },
+  {
     "name": "u",
     "score": 370
   },
@@ -80,16 +88,12 @@
     "score": 240
   },
   {
-    "name": "r",
-    "score": 230
-  },
-  {
     "name": "w",
     "score": 220
   },
   {
-    "name": "rr",
-    "score": 190
+    "name": "test2",
+    "score": 220
   },
   {
     "name": "o",
@@ -124,12 +128,24 @@
     "score": 90
   },
   {
+    "name": "test1",
+    "score": 80
+  },
+  {
+    "name": "test3",
+    "score": 80
+  },
+  {
     "name": "s",
     "score": 70
   },
   {
     "name": "yy",
     "score": 60
+  },
+  {
+    "name": "tt",
+    "score": 50
   },
   {
     "name": ",",
@@ -141,6 +157,10 @@
   },
   {
     "name": "ee",
+    "score": 0
+  },
+  {
+    "name": "oo",
     "score": 0
   }
 ]

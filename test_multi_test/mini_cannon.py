@@ -12,7 +12,7 @@ class MiniCannon:
     """
     FIRE_DELAY = 100       # 毫秒（主砲一半速度）
     LIFE_TIME  = 15_000    # 15 秒
-    SIZE       = (150, 150)  # 小砲台尺寸
+    SIZE       = (100, 100)  # 小砲台尺寸
 
     def __init__(self, main_cannon: 'Cannon'):
         self.main_cannon = main_cannon
