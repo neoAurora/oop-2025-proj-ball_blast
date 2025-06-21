@@ -21,7 +21,7 @@ class Game:
 
         self.bullets_per_second = 10  
         self.bullet_rows = 1
-        self.row_spacing = 22  # 每排子彈之間的水平間距（單位：像素）
+        self.row_spacing = 20  # 每排子彈之間的水平間距（單位：像素）
         self.damage_per_bullet = 1
         self.crit_rate = 5
         self.crit_damage = 150
