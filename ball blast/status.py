@@ -5,7 +5,7 @@ class StatusPanel:
     def __init__(self, game):
         self.game = game
         self.font = pygame.font.SysFont("Arial", 24)
-        self.title_font = pygame.font.SysFont("Arial", 36)
+        self.title_font = pygame.font.SysFont("Arial", 38)
         self.visible = False
         
     def toggle_visibility(self):
