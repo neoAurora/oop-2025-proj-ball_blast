@@ -6,7 +6,7 @@ class Bullet:
     def __init__(self, x, y):
         self.x = x
         self.y = y
-        self.speed = 10
+        self.speed = 9
 
         img_path = os.path.join("bullet.jpg")  
         self.image = pygame.image.load(img_path).convert()
