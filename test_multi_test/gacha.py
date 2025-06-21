@@ -25,7 +25,7 @@ CARD_POOL: List[Dict] = [
         "name": "施至遠の意志",          # 射速提升 40%
         "weight": 1,
         "img": "image/cards/card2.jpeg",
-        "effect": {"shot_delay": -30}  # ✅ 表示已獲得 40% 提升
+        "effect": {"shot_delay": -50}  # ✅ 表示已獲得 40% 提升
     },
     {
         "name": "王學誠の怒火",          # 雙發並排
