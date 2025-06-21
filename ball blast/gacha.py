@@ -10,7 +10,7 @@ CARD_POOL: List[Dict] = [
         "name": "TOYZ(R)", 
         "weight": 16,
         "img": "image/cards/card0.jpg",
-        "effect": {"cannon_speed+4"},
+        "effect": {"cannon_speed+3"},
         "rarity": "R"
     },
     {
