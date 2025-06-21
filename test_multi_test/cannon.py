@@ -6,7 +6,7 @@ class Cannon:
     def __init__(self, x, y):
         self.x = x
         self.y = y
-        self.speed = 5
+        self.speed = 6
         self.image = pygame.transform.scale(
             pygame.image.load("cannon.png").convert_alpha(), (200, 200))
         self.rect = self.image.get_rect(center=(x, y))
