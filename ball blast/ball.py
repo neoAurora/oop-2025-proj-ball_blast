@@ -21,7 +21,7 @@ class Ball:
         self.dx = random.uniform(-3, 3)  # 水平速度
         self.dy = random.uniform(1, 3)   # 垂直速度
         self.gravity = 0.1               # 重力加速度
-        self.elasticity = 0.94           #橫向彈性係數
+        self.elasticity = 0.95           #橫向彈性係數
         
         # 載入圖片資源
         self._load_images()
