@@ -12,7 +12,7 @@ class Leaderboard:
         self.leaderboard = []
         self.current_player = ""
         self.font = pygame.font.SysFont("Arial", 24)
-        self.title_font = pygame.font.SysFont("Arial", 35)
+        self.title_font = pygame.font.SysFont("Arial", 36)
         self.input_active = True
         self.input_text = ""
         
