@@ -11,7 +11,7 @@ class LevelManager:
                 'unlock_score': 0,
                 'spawn_interval': 300,  # frames between ball spawns
                 'ball_hp_min': 20,
-                'ball_hp_max': 30,
+                'ball_hp_max': 32,
                 'ball_speed_min': 1.0,
                 'ball_speed_max': 2.5,
                 'reward_ball_chance': 0.2,
