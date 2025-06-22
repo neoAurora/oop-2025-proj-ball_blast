@@ -4,7 +4,7 @@ import threading
 import time
 import os
 
-# == Initialize Pygame ==
+# == Initialize Pygame =
 pygame.init()
 screen = pygame.display.set_mode((640, 360))  # default window size
 pygame.display.set_caption("Video Player with Button")
