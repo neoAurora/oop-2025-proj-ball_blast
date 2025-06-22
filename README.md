@@ -66,7 +66,7 @@ python main.py
 python server.py
 ```
 
-----
+-----
 
 ## 🎮 遊戲操作說明
 
