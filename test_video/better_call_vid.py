@@ -11,7 +11,7 @@ pygame.display.set_caption("Video Player with Button")
 clock = pygame.time.Clock()
 font = pygame.font.SysFont(None, 48)
 
-# === Button Setup ===
+# === Button Setup ==
 button_color = (70, 130, 180)
 hover_color = (100, 160, 210)
 text_color = (255, 255, 255)
