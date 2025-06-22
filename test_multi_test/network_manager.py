@@ -1,4 +1,4 @@
-# network_manager.py                
+# network_manager.py                 
 import socket
 import pickle
 import threading
