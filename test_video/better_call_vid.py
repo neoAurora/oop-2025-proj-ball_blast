@@ -18,7 +18,7 @@ text_color = (255, 255, 255)
 button_rect = pygame.Rect(220, 150, 200, 60)
 button_text = font.render("Play Video", True, text_color)
 
-# === Function: Play video with audio ===
+# === Function: Play video with audio ==
 def play_video(filename):
     if not os.path.exists(filename):
         print(f"Video file not found: {filename}")
