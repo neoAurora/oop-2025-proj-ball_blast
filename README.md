@@ -80,7 +80,7 @@ python server.py
 | 確認選單    | Enter        |
 | 返回 / 退出 | ESC / Q      |
 
-----
+-----
 
 ## 🧱 專案結構說明
 
