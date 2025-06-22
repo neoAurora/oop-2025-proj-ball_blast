@@ -47,7 +47,7 @@ def play_video(filename):
     # Reset window to default after video
     pygame.display.set_mode((640, 360))
 
-# === Main Loop ===
+# === Main Loop ==
 playing = False
 running = True
 
