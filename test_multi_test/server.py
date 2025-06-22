@@ -11,7 +11,7 @@ class GameServer:
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         
-        # 遊戲狀態  
+        # 遊戲狀態   
         self.players = {}  # {player_id: connection}
         self.player_states = {}  # {player_id: player_state}
         self.max_players = 2
