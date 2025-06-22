@@ -16,22 +16,33 @@ class NetworkManager:
         """連接到伺服器"""
         try:
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.socket.settimeout(5)  # ✅ 設定最多等 5 秒
             self.socket.connect((host, port))
-            
+
+            # ✅ 成功後再移除 timeout 讓 recv 可阻塞
+            self.socket.settimeout(None)
+
             # 接收玩家ID和初始遊戲狀態
             initial_data = pickle.loads(self.socket.recv(4096))
             self.player_id = initial_data['player_id']
             self.is_connected = True
-            
+
             # 開始接收線程
             self.receive_thread = threading.Thread(target=self._receive_loop)
             self.receive_thread.daemon = True
             self.receive_thread.start()
-            
+
             return True
+        except socket.timeout:
+            print("⚠️ 連接超時，請確認 server 是否有啟動。")
+            return False
+        except ConnectionRefusedError:
+            print("❌ 連線被拒絕，可能是伺服器沒開或 IP/port 設錯。")
+            return False
         except Exception as e:
             print(f"連接失敗: {e}")
             return False
+
     
     def _receive_loop(self):
         """接收遊戲狀態的循環"""
