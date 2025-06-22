@@ -8,36 +8,38 @@ class Ball:
     # 類別變數：預載所有球體圖片（避免重複載入）
     _ball_images = None
     
-    def __init__(self, x, y, radius, hp, max_splits = 4):
+    def __init__(self, x, y, radius, hp, max_splits=4):
         self.x = x
         self.y = y
         self.radius = radius
         self.hp = hp
         self.original_hp = hp
-        self.max_splits = max_splits     #最大分裂次數
+        self.max_splits = max_splits
         self.splits_remaining = max_splits
-        
+
         # 初始化物理參數
-        self.dx = random.uniform(-3, 3)  # 水平速度
-        self.dy = random.uniform(1, 3)   # 垂直速度
-        self.gravity = 0.1               # 重力加速度
-        self.elasticity = 0.95           #橫向彈性係數
-        
+        self.dx = random.uniform(-3, 3)
+        self.dy = random.uniform(1, 3)
+        self.gravity = 0.1
+        self.elasticity = 0.95
+
         # 載入圖片資源
         self._load_images()
-        
-        # 隨機選擇圖片並縮放
-        self.current_image = random.choice(self._ball_images)
-        self.current_image = pygame.transform.scale(
-            self.current_image,
-            (radius*2, radius*2)  # 根據半徑調整大小
-        )
-        
+
+        # 隨機選擇圖片並縮放（如果子類有先定義 current_image 就跳過）
+        if not hasattr(self, "current_image"):
+            self.current_image = random.choice(self._ball_images)
+            self.current_image = pygame.transform.scale(
+                self.current_image,
+                (radius * 2, radius * 2)
+            )
+
+        # 設定 rect 與 mask（延後到圖片定義完成後）
+        self.rect = self.current_image.get_rect(center=(int(self.x), int(self.y)))
+        self.mask = pygame.mask.from_surface(self.current_image)
+
         # 文字渲染
         self.font = pygame.font.SysFont("Arial", 24)
-        
-        # 碰撞遮罩（用於精確碰撞檢測）
-        self.mask = pygame.mask.from_surface(self.current_image)
 
     @classmethod
     def _load_images(cls):
@@ -60,6 +62,9 @@ class Ball:
         # 更新位置
         self.x += self.dx
         self.y += self.dy
+        # 更新 rect 位置
+        self.rect.center = (int(self.x), int(self.y))
+
         
         # 底部反彈
         if self.y + self.radius >= screen_height - 100:  # -100 留出地面空間
@@ -155,6 +160,8 @@ class RewardBall(Ball):
         
         # 設定初始圖片（從大圖縮小）
         self.current_image = self._get_scaled_image(self.radius)
+        self.rect = self.current_image.get_rect(center=(int(self.x), int(self.y)))
+
         self.mask = pygame.mask.from_surface(self.current_image)
         
         # 獎勵球特有屬性
@@ -210,6 +217,7 @@ class RewardBall(Ball):
                 # 從高解析度原圖生成新尺寸圖片
                 self.current_image = self._get_scaled_image(self.radius)
                 self.mask = pygame.mask.from_surface(self.current_image)
+                self.rect = self.current_image.get_rect(center=(int(self.x), int(self.y)))
         return hit
 
     def split(self):
