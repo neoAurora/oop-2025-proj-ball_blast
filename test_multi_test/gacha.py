@@ -31,7 +31,7 @@ CARD_POOL: List[Dict] = [
         "name": "王學誠の怒火",          # 雙發並排
         "weight": 1,
         "img": "image/cards/card3.jpeg",
-        "effect": {"bullets_per_second": +5}
+        "effect": {"bullets_per_second": +4}
     },
     {
         "name": "賴城諭の忍耐",          # 耐久提升
